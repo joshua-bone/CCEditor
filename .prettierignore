@@ -1,0 +1,9 @@
+# Prettier ignore
+node_modules/
+dist/
+build/
+coverage/
+*.log
+
+# If you later have generated spritesheets/assets:
+frontend/public/generated/
