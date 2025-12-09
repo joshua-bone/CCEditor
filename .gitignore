@@ -1,0 +1,180 @@
+
+---
+
+### `.gitignore`
+
+```gitignore
+# -------------------------------------------------------
+# General OS / Editor cruft
+# -------------------------------------------------------
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+.nfs*
+
+# IDEs / Editors
+.vscode/
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+
+# VS Code local history / config
+.history/
+.vscode-test/
+
+# -------------------------------------------------------
+# Node / JavaScript / TypeScript (Vite + React)
+# -------------------------------------------------------
+
+# Dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Build output
+dist/
+build/
+.out/
+.next/
+.cache/
+.temp/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Vite / bundler caches
+.vite/
+vite.config.ts.timestamp-*
+.rollup.cache/
+
+# Testing
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+cypress/videos/
+cypress/screenshots/
+
+# Storybook
+.out/
+storybook-static/
+
+# -------------------------------------------------------
+# Env / Secrets
+# -------------------------------------------------------
+
+.env
+.env.local
+.env.*.local
+.envrc
+.envrc.d/
+
+# Local SSL keys, if any
+*.pem
+*.key
+
+# -------------------------------------------------------
+# Python (core DAT/CC1 library and tools)
+# -------------------------------------------------------
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+*.pyd
+*.dll
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# PyBuilder
+target/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env.py
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.cache/
+
+# Type checking / tooling
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Jupyter / notebooks (if used for prototyping)
+.ipynb_checkpoints/
+profile_default/
+ipython_config.py
+
+# -------------------------------------------------------
+# Project-specific (adjust as repo evolves)
+# -------------------------------------------------------
+
+# Local data dumps, scratch files, and temporary exports
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Generated assets (e.g., sprite sheets) – actual paths may change
+# tools/spritesheets/generated/
+# assets/generated/
+
+# Ignore editor-local config that might appear at the root
+*.code-workspace
