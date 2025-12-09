@@ -77,11 +77,11 @@ git clone https://github.com/joshua-bone/CCEditor.git
 cd CCEditor
 ```
 ### Dev setup
+- Frontend (Vite) lives in `frontend/`
+- Run `npm install` + `npm run dev` inside `frontend/` to start the dev server.
+- Run `npm run build` to generate HTML/CSS/JS in `frontend/dest/` folder.
+- Run `npm run preview` to preview the built app.
 
-Once TS02/TS03 land, you should be able to:
-
-    npm install
-    npm run dev   # start Vite dev server
 
 Details (Node versions, VSCode settings, test commands) will live in `devsetup.md`.
 
