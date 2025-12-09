@@ -77,6 +77,10 @@ git clone https://github.com/joshua-bone/CCEditor.git
 cd CCEditor
 ```
 ### Dev setup
+For detailed setup instructions (Node, nvm, VSCode, and commands), see:
+- [Dev Setup](./devsetup.md)
+
+Quick start (frontend only):
 - Frontend (Vite) lives in `frontend/`
 - Run `npm install` + `npm run dev` inside `frontend/` to start the dev server.
 - Run `npm run build` to generate HTML/CSS/JS in `frontend/dest/` folder.
