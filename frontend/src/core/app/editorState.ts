@@ -31,6 +31,8 @@ export interface EditorState<TCell extends GameCellBase = GameCellBase> {
   readonly clipboard: LayerClipboard<TCell> | null;
   readonly paletteSelection: PaletteSelection;
   readonly viewState: ViewState;
+
+  readonly activeToolId: string | null;
 }
 
 /**
@@ -103,6 +105,8 @@ export function createInitialEditorState<TCell extends GameCellBase>(
 
   const projectId = `project-${Date.now()}`;
 
+  const defaultToolId = 'tool.brush';
+
   return {
     projectId,
     gameId: levelset.gameId,
@@ -112,5 +116,6 @@ export function createInitialEditorState<TCell extends GameCellBase>(
     clipboard: null,
     paletteSelection,
     viewState,
+    activeToolId: defaultToolId,
   };
 }
