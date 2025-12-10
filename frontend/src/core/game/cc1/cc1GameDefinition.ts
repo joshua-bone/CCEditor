@@ -175,37 +175,95 @@ function validateLevelCC1(level: CC1Level): ValidationIssue[] {
 // ---------------------------------------------------------------------------
 
 function getCC1TilePalette(): TileDescriptor[] {
-  // Minimal, structured palette for now; expand later as needed.
   return [
-    { id: 'FLOOR', label: 'Floor', category: 'terrain', cc1Id: CC1TileId.FLOOR },
-    { id: 'WALL', label: 'Wall', category: 'terrain', cc1Id: CC1TileId.WALL },
-    { id: 'WATER', label: 'Water', category: 'terrain', cc1Id: CC1TileId.WATER },
-    { id: 'FIRE', label: 'Fire', category: 'terrain', cc1Id: CC1TileId.FIRE },
+    // Terrain
+    { id: 'FLOOR', label: 'Floor', category: 'terrain', cc1Id: CC1TileId.FLOOR, symbol: '·' },
+    { id: 'WALL', label: 'Wall', category: 'terrain', cc1Id: CC1TileId.WALL, symbol: '#' },
+    { id: 'WATER', label: 'Water', category: 'terrain', cc1Id: CC1TileId.WATER, symbol: '~' },
+    { id: 'FIRE', label: 'Fire', category: 'terrain', cc1Id: CC1TileId.FIRE, symbol: '^' },
+    { id: 'ICE', label: 'Ice', category: 'terrain', cc1Id: CC1TileId.ICE, symbol: 'I' },
 
-    { id: 'CHIP', label: 'Chip', category: 'collectible', cc1Id: CC1TileId.CHIP },
+    // Collectibles / exits
+    { id: 'CHIP', label: 'Chip', category: 'collectible', cc1Id: CC1TileId.CHIP, symbol: '*' },
+    { id: 'SOCKET', label: 'Socket', category: 'terrain', cc1Id: CC1TileId.SOCKET, symbol: '□' },
+    { id: 'EXIT', label: 'Exit', category: 'terrain', cc1Id: CC1TileId.EXIT, symbol: '⎋' },
 
-    { id: 'PLAYER_N', label: 'Player (N)', category: 'player', cc1Id: CC1TileId.PLAYER_N },
+    // Player
+    {
+      id: 'PLAYER_N',
+      label: 'Player (N)',
+      category: 'player',
+      cc1Id: CC1TileId.PLAYER_N,
+      symbol: '@',
+    },
 
-    { id: 'BLOCK', label: 'Block', category: 'block', cc1Id: CC1TileId.BLOCK },
+    // Blocks
+    { id: 'BLOCK', label: 'Block', category: 'block', cc1Id: CC1TileId.BLOCK, symbol: '□' },
 
-    { id: 'BLUE_DOOR', label: 'Blue Door', category: 'door', cc1Id: CC1TileId.BLUE_DOOR },
-    { id: 'RED_DOOR', label: 'Red Door', category: 'door', cc1Id: CC1TileId.RED_DOOR },
-    { id: 'GREEN_DOOR', label: 'Green Door', category: 'door', cc1Id: CC1TileId.GREEN_DOOR },
-    { id: 'YELLOW_DOOR', label: 'Yellow Door', category: 'door', cc1Id: CC1TileId.YELLOW_DOOR },
+    // Doors
+    {
+      id: 'BLUE_DOOR',
+      label: 'Blue Door',
+      category: 'door',
+      cc1Id: CC1TileId.BLUE_DOOR,
+      symbol: 'B',
+    },
+    { id: 'RED_DOOR', label: 'Red Door', category: 'door', cc1Id: CC1TileId.RED_DOOR, symbol: 'R' },
+    {
+      id: 'GREEN_DOOR',
+      label: 'Green Door',
+      category: 'door',
+      cc1Id: CC1TileId.GREEN_DOOR,
+      symbol: 'G',
+    },
+    {
+      id: 'YELLOW_DOOR',
+      label: 'Yellow Door',
+      category: 'door',
+      cc1Id: CC1TileId.YELLOW_DOOR,
+      symbol: 'Y',
+    },
 
-    { id: 'BLUE_KEY', label: 'Blue Key', category: 'key', cc1Id: CC1TileId.BLUE_KEY },
-    { id: 'RED_KEY', label: 'Red Key', category: 'key', cc1Id: CC1TileId.RED_KEY },
-    { id: 'GREEN_KEY', label: 'Green Key', category: 'key', cc1Id: CC1TileId.GREEN_KEY },
-    { id: 'YELLOW_KEY', label: 'Yellow Key', category: 'key', cc1Id: CC1TileId.YELLOW_KEY },
+    // Keys
+    { id: 'BLUE_KEY', label: 'Blue Key', category: 'key', cc1Id: CC1TileId.BLUE_KEY, symbol: 'b' },
+    { id: 'RED_KEY', label: 'Red Key', category: 'key', cc1Id: CC1TileId.RED_KEY, symbol: 'r' },
+    {
+      id: 'GREEN_KEY',
+      label: 'Green Key',
+      category: 'key',
+      cc1Id: CC1TileId.GREEN_KEY,
+      symbol: 'g',
+    },
+    {
+      id: 'YELLOW_KEY',
+      label: 'Yellow Key',
+      category: 'key',
+      cc1Id: CC1TileId.YELLOW_KEY,
+      symbol: 'y',
+    },
 
-    { id: 'FLIPPERS', label: 'Flippers', category: 'boots', cc1Id: CC1TileId.FLIPPERS },
-    { id: 'FIRE_BOOTS', label: 'Fire Boots', category: 'boots', cc1Id: CC1TileId.FIRE_BOOTS },
-    { id: 'SKATES', label: 'Skates', category: 'boots', cc1Id: CC1TileId.SKATES },
+    // Boots
+    {
+      id: 'FLIPPERS',
+      label: 'Flippers',
+      category: 'boots',
+      cc1Id: CC1TileId.FLIPPERS,
+      symbol: 'F',
+    },
+    {
+      id: 'FIRE_BOOTS',
+      label: 'Fire Boots',
+      category: 'boots',
+      cc1Id: CC1TileId.FIRE_BOOTS,
+      symbol: 'f',
+    },
+    { id: 'SKATES', label: 'Skates', category: 'boots', cc1Id: CC1TileId.SKATES, symbol: 'S' },
     {
       id: 'SUCTION_BOOTS',
       label: 'Suction Boots',
       category: 'boots',
       cc1Id: CC1TileId.SUCTION_BOOTS,
+      symbol: 'U',
     },
   ];
 }
