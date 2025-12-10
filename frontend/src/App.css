@@ -129,3 +129,84 @@ body {
   text-align: right;
   color: #888;
 }
+
+/* Canvas + zoom toolbar */
+
+.CanvasToolbar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+}
+
+.CanvasToolbar-label {
+  margin-right: 0.25rem;
+  color: #555;
+}
+
+.CanvasToolbar button {
+  padding: 0 0.4rem;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.CanvasToolbar button:hover {
+  background-color: #f0f0f0;
+}
+
+.CanvasToolbar-zoomValue {
+  margin-left: 0.25rem;
+  min-width: 3ch;
+  text-align: right;
+  color: #555;
+}
+
+.LevelCanvas-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.LevelCanvas-scroll {
+  flex: 1 1 auto;
+  overflow: auto;
+  background-color: #e0e3e9;
+  border-radius: 4px;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+.LevelCanvas {
+  display: grid;
+  transform-origin: top left;
+  box-shadow: 0 0 0 1px #bbb;
+  background-color: #cfd3dd;
+}
+
+.LevelCanvas-cell {
+  width: 24px;
+  height: 24px;
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: #333;
+  background-color: #f8f8f8;
+}
+
+.LevelCanvas-cell--selected {
+  outline: 2px solid #007acc;
+  outline-offset: -2px;
+  background-color: #e1f3ff;
+}
+
+.LevelCanvas-empty {
+  font-size: 0.85rem;
+  color: #777;
+}

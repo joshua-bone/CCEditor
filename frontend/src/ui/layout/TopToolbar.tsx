@@ -11,7 +11,7 @@ export const TopToolbar: React.FC<TopToolbarProps> = ({ projectId, gameId }) => 
   return (
     <header className="TopToolbar">
       <div className="TopToolbar-title">
-        DATEditor <span className="TopToolbar-subtitle">({gameId})</span>
+        CCEditor <span className="TopToolbar-subtitle">({gameId})</span>
       </div>
       <div className="TopToolbar-spacer" />
       <div className="TopToolbar-project">
