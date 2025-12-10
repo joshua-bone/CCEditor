@@ -11,6 +11,7 @@ import {
   removeLayer,
   reorderLayer,
   newLayerFromSelection,
+  setLayerVisibility,
   type LevelWithLayers,
 } from '../model/layers';
 
@@ -30,7 +31,10 @@ export type EditorCommandType =
   | 'ADD_LAYER'
   | 'REMOVE_LAYER'
   | 'REORDER_LAYER'
-  | 'NEW_LAYER_FROM_SELECTION';
+  | 'NEW_LAYER_FROM_SELECTION'
+  | 'SET_LAYER_VISIBILITY'
+  | 'SET_ACTIVE_LAYER'
+  | 'RENAME_LAYER';
 
 export interface SetActiveToolCommand {
   type: 'SET_ACTIVE_TOOL';
@@ -104,6 +108,26 @@ export interface NewLayerFromSelectionCommand {
   newLayerName: string;
 }
 
+export interface SetLayerVisibilityCommand {
+  type: 'SET_LAYER_VISIBILITY';
+  levelId: LevelId;
+  layerId: LayerId;
+  visible: boolean;
+}
+
+export interface SetActiveLayerCommand {
+  type: 'SET_ACTIVE_LAYER';
+  levelId: LevelId;
+  layerId: LayerId;
+}
+
+export interface RenameLayerCommand {
+  type: 'RENAME_LAYER';
+  levelId: LevelId;
+  layerId: LayerId;
+  name: string;
+}
+
 export type EditorCommand =
   | SetActiveToolCommand
   | SetSelectionCommand
@@ -116,7 +140,10 @@ export type EditorCommand =
   | AddLayerCommand
   | RemoveLayerCommand
   | ReorderLayerCommand
-  | NewLayerFromSelectionCommand;
+  | NewLayerFromSelectionCommand
+  | SetLayerVisibilityCommand
+  | SetActiveLayerCommand
+  | RenameLayerCommand;
 
 function findLevelIndex<TCell extends GameCellBase>(
   state: EditorState<TCell>,
@@ -347,6 +374,42 @@ function clearSelection<TCell extends GameCellBase>(state: EditorState<TCell>): 
   return setSelection(state, null);
 }
 
+function applySetLayerVisibility<TCell extends GameCellBase>(
+  state: EditorState<TCell>,
+  cmd: SetLayerVisibilityCommand,
+): EditorState<TCell> {
+  return updateLevelAt(state, cmd.levelId, (lvl) =>
+    setLayerVisibility(lvl, cmd.layerId, cmd.visible),
+  );
+}
+
+function applySetActiveLayer<TCell extends GameCellBase>(
+  state: EditorState<TCell>,
+  cmd: SetActiveLayerCommand,
+): EditorState<TCell> {
+  return updateLevelAt(state, cmd.levelId, (lvl) => {
+    // Ensure layer exists
+    const exists = lvl.layers.some((l) => l.id === cmd.layerId);
+    if (!exists) return lvl;
+    return {
+      ...lvl,
+      activeLayerId: cmd.layerId,
+    };
+  });
+}
+
+function applyRenameLayer<TCell extends GameCellBase>(
+  state: EditorState<TCell>,
+  cmd: RenameLayerCommand,
+): EditorState<TCell> {
+  return updateLevelAt(state, cmd.levelId, (lvl) => {
+    const layers = lvl.layers.map((layer) =>
+      layer.id === cmd.layerId ? { ...layer, name: cmd.name } : layer,
+    );
+    return { ...lvl, layers };
+  });
+}
+
 function reduceEditorState<TCell extends GameCellBase>(
   state: EditorState<TCell>,
   command: EditorCommand,
@@ -388,6 +451,15 @@ function reduceEditorState<TCell extends GameCellBase>(
 
     case 'NEW_LAYER_FROM_SELECTION':
       return applyNewLayerFromSelection(state, command);
+
+    case 'SET_LAYER_VISIBILITY':
+      return applySetLayerVisibility(state, command);
+
+    case 'SET_ACTIVE_LAYER':
+      return applySetActiveLayer(state, command);
+
+    case 'RENAME_LAYER':
+      return applyRenameLayer(state, command);
 
     default:
       // Unknown command type: no-op

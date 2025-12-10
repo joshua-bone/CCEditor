@@ -380,3 +380,131 @@ body {
   color: #c62828;
   border-color: #c62828;
 }
+
+/* Layers panel */
+
+.LayersPanel {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  max-height: 50vh;
+}
+
+.LayersPanel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+.LayersPanel-headerButtons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.LayersPanel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.LayersPanel-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.15rem;
+}
+
+.LayersPanel-item--active .LayersPanel-itemMain {
+  background-color: #d0e6ff;
+  font-weight: 600;
+}
+
+.LayersPanel-item--background .LayersPanel-tag {
+  background-color: #555;
+  color: #fff;
+}
+
+.LayersPanel-eye {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-right: 0.25rem;
+}
+
+.LayersPanel-itemMain {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  border-radius: 3px;
+  border: none;
+  background: transparent;
+  padding: 0.1rem 0.25rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.LayersPanel-itemMain:hover {
+  background-color: #e5f1ff;
+}
+
+.LayersPanel-name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+.LayersPanel-tag {
+  margin-left: 0.25rem;
+  padding: 0 0.3rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  background-color: #999;
+  color: #fff;
+}
+
+.LayersPanel-nameInput {
+  width: 100%;
+  font-size: 0.85rem;
+  padding: 0.05rem 0.2rem;
+}
+
+.LayersPanel-itemButtons {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.LayersPanel-button {
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 0.75rem;
+  padding: 0 0.3rem;
+  cursor: pointer;
+}
+
+.LayersPanel-button--add {
+  color: #2e7d32;
+  border-color: #2e7d32;
+}
+
+.LayersPanel-button--delete {
+  color: #c62828;
+  border-color: #c62828;
+}
+
+.LayersPanel-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.Sidebar-separator {
+  margin: 0.5rem 0;
+  border: none;
+  border-top: 1px solid #ddd;
+}
