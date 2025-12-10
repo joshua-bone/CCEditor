@@ -79,3 +79,33 @@ export async function saveProjectToFile(runtime: EditorRuntime<CC1Cell>): Promis
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+export async function exportCurrentLevelsetAsDat(runtime: EditorRuntime<CC1Cell>): Promise<void> {
+  const state = runtime.useEditorStore.getState().history.present;
+  const levelset = state.levelset;
+
+  const ext = '.dat';
+  const formats = runtime.pluginRegistry.getFileFormatsForExtension(ext);
+  const fmt = formats[0];
+
+  if (!fmt || !fmt.write) {
+    alert(`No writer for ${ext}`);
+    return;
+  }
+
+  try {
+    const buffer = (await fmt.write(levelset)) as ArrayBuffer;
+    const blob = new Blob([buffer], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${state.projectId || 'project'}.dat`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Failed to export DAT', error);
+    alert('Failed to export DAT file');
+  }
+}
