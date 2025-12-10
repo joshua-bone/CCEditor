@@ -21,11 +21,10 @@ export interface EditorStoreState<TCell extends GameCellBase = GameCellBase> {
   undo(): void;
   redo(): void;
 
-  /**
-   * Replace the current project with the given state, resetting history.
-   * Used for "open project" / "load file".
-   */
   loadStateFromProject(state: EditorState<TCell>): void;
+
+  setLeftPaletteTile(tileId: string | null): void; // NEW
+  setRightPaletteTile(tileId: string | null): void; // NEW
 }
 
 export function createEditorStore<TCell extends GameCellBase>(
@@ -74,6 +73,45 @@ export function createEditorStore<TCell extends GameCellBase>(
           future: [],
         },
       }));
+    },
+    setLeftPaletteTile(tileId) {
+      set((state) => {
+        const present = state.history.present;
+        const nextPresent: EditorState<TCell> = {
+          ...present,
+          paletteSelection: {
+            ...present.paletteSelection,
+            leftTileId: tileId,
+          },
+        };
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            present: nextPresent,
+          },
+        };
+      });
+    },
+
+    setRightPaletteTile(tileId) {
+      set((state) => {
+        const present = state.history.present;
+        const nextPresent: EditorState<TCell> = {
+          ...present,
+          paletteSelection: {
+            ...present.paletteSelection,
+            rightTileId: tileId,
+          },
+        };
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            present: nextPresent,
+          },
+        };
+      });
     },
   }));
 }

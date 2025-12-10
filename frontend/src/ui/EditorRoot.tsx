@@ -21,6 +21,9 @@ export interface EditorRootProps {
 }
 
 export const EditorRoot: React.FC<EditorRootProps> = ({ useEditorStore, gameDefinitions }) => {
+  const paletteSelection = useEditorStore((s) => s.history.present.paletteSelection);
+  const setLeftPaletteTile = useEditorStore((s) => s.setLeftPaletteTile);
+  const setRightPaletteTile = useEditorStore((s) => s.setRightPaletteTile);
   const history = useEditorStore((s) => s.history);
   const { present } = history;
 
@@ -32,6 +35,9 @@ export const EditorRoot: React.FC<EditorRootProps> = ({ useEditorStore, gameDefi
   const gameDefinition: GameDefinition<GameCellBase> | undefined = gameDefinitions.get(
     present.gameId as string,
   ) as GameDefinition<GameCellBase> | undefined;
+  const paletteTiles = gameDefinition?.getTilePalette() ?? [];
+  const leftDescriptor = paletteTiles.find((t) => t.id === paletteSelection.leftTileId);
+  const rightDescriptor = paletteTiles.find((t) => t.id === paletteSelection.rightTileId);
 
   const levelCount = levelset.levels.length;
 
@@ -46,7 +52,19 @@ export const EditorRoot: React.FC<EditorRootProps> = ({ useEditorStore, gameDefi
           selection={present.selection as SelectionRect | null}
           gameDefinition={gameDefinition}
         />
-        <RightSidebar />
+        <RightSidebar
+          tiles={paletteTiles}
+          leftTileId={paletteSelection.leftTileId}
+          rightTileId={paletteSelection.rightTileId}
+          onSetLeft={setLeftPaletteTile}
+          onSetRight={setRightPaletteTile}
+        />
+        <StatusBar
+          zoom={present.viewState.zoom}
+          selection={present.selection}
+          leftTileLabel={leftDescriptor?.label}
+          rightTileLabel={rightDescriptor?.label}
+        />
       </div>
 
       <StatusBar zoom={present.viewState.zoom} selection={present.selection} />

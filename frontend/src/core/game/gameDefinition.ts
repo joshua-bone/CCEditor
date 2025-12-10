@@ -17,6 +17,7 @@ export interface TileDescriptor {
   label: string; // human-readable name
   category?: string; // e.g. "terrain", "item", "monster"
   cc1Id?: number | string; // optional: link to CC1TileId
+  symbol?: string; // OPTIONAL: "·", "#", "@" – simple text icon
 }
 
 export interface GameDefinition<TCell extends GameCellBase> {
