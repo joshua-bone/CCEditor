@@ -282,3 +282,101 @@ body {
 .StatusBar-tile {
   margin-left: 0.5rem;
 }
+
+.LevelList {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.LevelList-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.LevelList-headerButtons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.LevelList-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.LevelList-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.15rem 0;
+}
+
+.LevelList-itemMain {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  padding: 0.15rem 0.25rem;
+  border-radius: 3px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.LevelList-itemMain:hover {
+  background-color: #e5f1ff;
+}
+
+.LevelList-item--current .LevelList-itemMain {
+  background-color: #d0e6ff;
+  font-weight: 600;
+}
+
+.LevelList-index {
+  width: 2ch;
+  margin-right: 0.25rem;
+  color: #777;
+}
+
+.LevelList-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.LevelList-itemButtons {
+  display: flex;
+  gap: 0.15rem;
+  flex: 0 0 auto;
+}
+
+.LevelList-button {
+  border-radius: 3px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 0.75rem;
+  padding: 0 0.3rem;
+  cursor: pointer;
+}
+
+.LevelList-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.LevelList-button--add {
+  color: #2e7d32;
+  border-color: #2e7d32;
+}
+
+.LevelList-button--delete {
+  color: #c62828;
+  border-color: #c62828;
+}

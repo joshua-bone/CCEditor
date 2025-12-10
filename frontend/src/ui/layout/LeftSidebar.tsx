@@ -1,19 +1,33 @@
-// frontend/src/ui/layout/LeftSidebar.tsx
-
 import React from 'react';
+import { LevelList, type LevelListItem } from '../LevelList';
 
 interface LeftSidebarProps {
-  levelCount: number;
-  currentLevelName: string;
+  levels: LevelListItem[];
+  currentLevelId: string;
+  onSelectLevel(levelId: string): void;
+  onAddLevel(): void;
+  onDeleteLevel(levelId: string): void;
+  onMoveLevel(levelId: string, direction: 'up' | 'down'): void;
 }
 
-export const LeftSidebar: React.FC<LeftSidebarProps> = ({ levelCount, currentLevelName }) => {
+export const LeftSidebar: React.FC<LeftSidebarProps> = ({
+  levels,
+  currentLevelId,
+  onSelectLevel,
+  onAddLevel,
+  onDeleteLevel,
+  onMoveLevel,
+}) => {
   return (
     <aside className="LeftSidebar">
-      <h2 className="Sidebar-heading">Levels</h2>
-      <p>{levelCount} level(s)</p>
-      {currentLevelName && <p>Current: {currentLevelName}</p>}
-      <p className="Sidebar-placeholder">Level list UI goes here…</p>
+      <LevelList
+        levels={levels}
+        currentLevelId={currentLevelId}
+        onSelect={onSelectLevel}
+        onAdd={onAddLevel}
+        onDelete={onDeleteLevel}
+        onMove={onMoveLevel}
+      />
     </aside>
   );
 };
