@@ -120,3 +120,16 @@ export type CC1TileId = (typeof CC1TileId)[keyof typeof CC1TileId];
 
 // Optional: "FLOOR" | "WALL" | ... if you want it
 export type CC1TileName = keyof typeof CC1TileId;
+
+export function cc1TileNameToId(name: string): CC1TileId | null {
+  if (Object.prototype.hasOwnProperty.call(CC1TileId, name)) {
+    return CC1TileId[name as CC1TileName] as CC1TileId;
+  }
+  return null;
+}
+
+export function cc1TileIdToName(id: CC1TileId): CC1TileName {
+  const entries = Object.entries(CC1TileId) as [CC1TileName, CC1TileId][];
+  const found = entries.find(([, value]) => value === id);
+  return found ? found[0] : 'FLOOR';
+}
