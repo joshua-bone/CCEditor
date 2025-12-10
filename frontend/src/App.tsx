@@ -3,9 +3,10 @@
 import './App.css';
 
 import { createEditor } from './core/app/editorBootstrap';
+import { builtinPlugins } from './core/plugin/builtinPlugins';
 import { EditorRoot } from './ui/EditorRoot';
 
-const editorRuntime = createEditor(); // { useEditorStore, gameDefinitions, ... }
+const editorRuntime = createEditor(builtinPlugins); // { useEditorStore, gameDefinitions, ... }
 
 function App() {
   const { useEditorStore, gameDefinitions } = editorRuntime;

@@ -119,3 +119,37 @@ export function createInitialEditorState<TCell extends GameCellBase>(
     activeToolId: defaultToolId,
   };
 }
+
+export function createEditorStateFromLevelset<TCell extends GameCellBase>(
+  gameDefinition: GameDefinition<TCell>,
+  levelset: LevelsetWithLayers<TCell>,
+): EditorState<TCell> {
+  const projectId = `project-${Date.now()}`;
+
+  // We assume levelset already has LevelWithLayers<TCell> objects;
+  // just wrap it into EditorState and reinitialize palette/view state.
+  const initialLevelId = levelset.levels[0]?.id;
+
+  const palette = gameDefinition.getTilePalette();
+  const leftTileId = palette[0]?.id ?? null;
+  const rightTileId = palette[1]?.id ?? leftTileId ?? null;
+
+  return {
+    projectId,
+    gameId: levelset.gameId,
+    levelset,
+    currentLevelId: initialLevelId ?? '',
+    selection: null,
+    clipboard: null,
+    paletteSelection: {
+      leftTileId,
+      rightTileId,
+    },
+    viewState: {
+      zoom: 1,
+      pan: { x: 0, y: 0 },
+      overlaysEnabled: {},
+    },
+    activeToolId: 'tool.brush',
+  };
+}
