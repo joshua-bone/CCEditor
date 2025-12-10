@@ -14,6 +14,7 @@ import { LeftSidebar } from './layout/LeftSidebar';
 import { CenterPane } from './layout/CenterPane';
 import { RightSidebar } from './layout/RightSidebar';
 import { StatusBar } from './layout/StatusBar';
+import type { LayerListItem } from './layout/LayersPanel';
 
 export interface EditorRootProps {
   useEditorStore: UseBoundStore<StoreApi<EditorStoreState>>;
@@ -69,6 +70,88 @@ export const EditorRoot: React.FC<EditorRootProps> = ({ useEditorStore, gameDefi
       newIndex,
     });
   };
+
+  const layersForPanel: LayerListItem[] = currentLevel
+    ? currentLevel.layers.map((layer, index) => ({
+        id: layer.id,
+        name: layer.name,
+        index,
+        isBackground: index === 0,
+        visible: layer.visible,
+      }))
+    : [];
+
+  const handleSelectLayer = (layerId: string) => {
+    if (!currentLevel) return;
+    dispatchCommand({
+      type: 'SET_ACTIVE_LAYER',
+      levelId: currentLevel.id,
+      layerId,
+    });
+  };
+
+  const handleToggleLayerVisibility = (layerId: string, visible: boolean) => {
+    if (!currentLevel) return;
+    dispatchCommand({
+      type: 'SET_LAYER_VISIBILITY',
+      levelId: currentLevel.id,
+      layerId,
+      visible,
+    });
+  };
+
+  const handleAddLayer = () => {
+    if (!currentLevel) return;
+    dispatchCommand({
+      type: 'ADD_LAYER',
+      levelId: currentLevel.id,
+      name: 'New Layer',
+    });
+  };
+
+  const handleRemoveLayer = (layerId: string) => {
+    if (!currentLevel) return;
+    dispatchCommand({
+      type: 'REMOVE_LAYER',
+      levelId: currentLevel.id,
+      layerId,
+    });
+  };
+
+  const handleMoveLayer = (layerId: string, direction: 'up' | 'down') => {
+    if (!currentLevel) return;
+    const idx = currentLevel.layers.findIndex((l) => l.id === layerId);
+    if (idx === -1) return;
+
+    const newIndex = direction === 'up' ? idx - 1 : idx + 1;
+    dispatchCommand({
+      type: 'REORDER_LAYER',
+      levelId: currentLevel.id,
+      layerId,
+      newIndex,
+    });
+  };
+
+  const handleNewLayerFromSelection = () => {
+    if (!currentLevel || !present.selection) return;
+    dispatchCommand({
+      type: 'NEW_LAYER_FROM_SELECTION',
+      levelId: currentLevel.id,
+      sourceLayerId: currentLevel.activeLayerId,
+      newLayerName: 'From Selection',
+    });
+  };
+
+  const handleRenameLayer = (layerId: string, name: string) => {
+    if (!currentLevel) return;
+    dispatchCommand({
+      type: 'RENAME_LAYER',
+      levelId: currentLevel.id,
+      layerId,
+      name,
+    });
+  };
+
   return (
     <>
       <TopToolbar projectId={present.projectId} gameId={present.gameId} />
@@ -88,13 +171,24 @@ export const EditorRoot: React.FC<EditorRootProps> = ({ useEditorStore, gameDefi
           selection={present.selection as SelectionRect | null}
           gameDefinition={gameDefinition}
         />
+
         <RightSidebar
           tiles={paletteTiles}
           leftTileId={paletteSelection.leftTileId}
           rightTileId={paletteSelection.rightTileId}
           onSetLeft={setLeftPaletteTile}
           onSetRight={setRightPaletteTile}
+          layers={layersForPanel}
+          activeLayerId={currentLevel?.activeLayerId ?? ''}
+          onSelectLayer={handleSelectLayer}
+          onToggleLayerVisibility={handleToggleLayerVisibility}
+          onAddLayer={handleAddLayer}
+          onRemoveLayer={handleRemoveLayer}
+          onMoveLayer={handleMoveLayer}
+          onNewLayerFromSelection={handleNewLayerFromSelection}
+          onRenameLayer={handleRenameLayer}
         />
+
         <StatusBar
           zoom={present.viewState.zoom}
           selection={present.selection}
