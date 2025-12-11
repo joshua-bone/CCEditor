@@ -10,6 +10,7 @@ import type { EditorStoreState } from '../../core/app/editorStore';
 import type { ToolDescriptor } from '../../core/plugin/toolTypes';
 import type { CC1Cell } from '../../core/game/cc1/cc1Types';
 import { LevelCanvas } from '../LevelCanvas';
+import type { OverlayProvider } from '../../core/plugin/panelTypes';
 
 interface CenterPaneProps {
   level: LevelWithLayers<GameCellBase> | undefined;
@@ -17,6 +18,8 @@ interface CenterPaneProps {
   gameDefinition: GameDefinition<GameCellBase> | undefined;
   useEditorStore: UseBoundStore<StoreApi<EditorStoreState<CC1Cell>>>;
   activeTool: ToolDescriptor<CC1Cell> | null;
+  overlayProviders: OverlayProvider<CC1Cell>[];
+  overlaysEnabled: Record<string, boolean>;
 }
 
 export const CenterPane: React.FC<CenterPaneProps> = ({
@@ -25,6 +28,8 @@ export const CenterPane: React.FC<CenterPaneProps> = ({
   gameDefinition,
   useEditorStore,
   activeTool,
+  overlayProviders,
+  overlaysEnabled,
 }) => {
   return (
     <main className="CenterPane">
@@ -34,6 +39,8 @@ export const CenterPane: React.FC<CenterPaneProps> = ({
         gameDefinition={gameDefinition}
         useEditorStore={useEditorStore}
         activeTool={activeTool}
+        overlayProviders={overlayProviders}
+        overlaysEnabled={overlaysEnabled}
       />
     </main>
   );

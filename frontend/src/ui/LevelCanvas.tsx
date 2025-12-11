@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import type { LevelWithLayers } from '../core/model/layers';
 import type { SelectionRect } from '../core/model/selection';
 import type { GameDefinition } from '../core/game/gameDefinition';
-import type { GameCellBase } from '../core/model/gameTypes';
+import type { GameCellBase, GameLevel } from '../core/model/gameTypes';
 import type { UseBoundStore, StoreApi } from 'zustand';
 import type { EditorStoreState } from '../core/app/editorStore';
 import type { ToolRuntimeContext } from '../core/plugin/toolTypes';
@@ -14,6 +14,7 @@ import { createToolRuntimeContext } from '../core/app/toolRuntime';
 import type { CC1Cell } from '../core/game/cc1/cc1Types';
 import { CC1TileId, cc1TileIdToName } from '../core/game/cc1/cc1Tiles';
 import type { Coords } from '../core/model/types';
+import type { OverlayProvider, OverlayShape } from '../core/plugin/panelTypes';
 
 export interface LevelCanvasProps {
   level: LevelWithLayers<GameCellBase> | undefined;
@@ -21,6 +22,9 @@ export interface LevelCanvasProps {
   gameDefinition: GameDefinition<GameCellBase> | undefined;
   useEditorStore: UseBoundStore<StoreApi<EditorStoreState<CC1Cell>>>;
   activeTool: ToolDescriptor<CC1Cell> | null;
+
+  overlayProviders: OverlayProvider<CC1Cell>[];
+  overlaysEnabled: Record<string, boolean>;
 }
 
 const CELL_SIZE = 24;
@@ -31,6 +35,8 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
   gameDefinition,
   useEditorStore,
   activeTool,
+  overlayProviders,
+  overlaysEnabled,
 }) => {
   const [zoom, setZoom] = useState(1.0);
 
@@ -60,6 +66,27 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
     activeTool && gameDefinition && gameDefinition.gameId === 'cc1'
       ? createToolRuntimeContext(useEditorStore, gameDefinition as GameDefinition<CC1Cell>)
       : null;
+
+  const overlays: OverlayShape[] = (() => {
+    if (!gameDefinition || gameDefinition.gameId !== 'cc1') {
+      return [];
+    }
+    const asCc1Level = flattened as unknown as GameLevel<CC1Cell>;
+    const shapes: OverlayShape[] = [];
+
+    for (const provider of overlayProviders) {
+      const enabled = overlaysEnabled[provider.id] ?? false;
+      if (!enabled) {
+        continue;
+      }
+      const providerShapes = provider.getOverlays(asCc1Level);
+      for (const shape of providerShapes) {
+        shapes.push(shape);
+      }
+    }
+
+    return shapes;
+  })();
 
   const { size, grid } = flattened;
 
@@ -157,39 +184,71 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
         <span className="CanvasToolbar-zoomValue">{Math.round(zoom * 100)}%</span>
       </div>
       <div className="LevelCanvas-scroll">
-        <div
-          className="LevelCanvas"
-          style={{
-            width: size.width * CELL_SIZE,
-            height: size.height * CELL_SIZE,
-            gridTemplateColumns: `repeat(${size.width}, ${CELL_SIZE}px)`,
-            gridTemplateRows: `repeat(${size.height}, ${CELL_SIZE}px)`,
-            transform: `scale(${zoom})`,
-          }}
-          onContextMenu={(ev) => {
-            ev.preventDefault();
-          }}
-          onMouseDown={(ev) => {
-            ev.preventDefault();
-            if (!runtimeContext || !activeTool?.behavior.onPointerDown) return;
-            const pe = toPointerEvent(ev, 'down', zoom);
-            if (!pe) return;
-            activeTool.behavior.onPointerDown(runtimeContext, pe);
-          }}
-          onMouseMove={(ev) => {
-            if (!runtimeContext || !activeTool?.behavior.onPointerMove) return;
-            const pe = toPointerEvent(ev, 'move', zoom);
-            if (!pe) return;
-            activeTool.behavior.onPointerMove(runtimeContext, pe);
-          }}
-          onMouseUp={(ev) => {
-            if (!runtimeContext || !activeTool?.behavior.onPointerUp) return;
-            const pe = toPointerEvent(ev, 'up', zoom);
-            if (!pe) return;
-            activeTool.behavior.onPointerUp(runtimeContext, pe);
-          }}
-        >
-          {cells}
+        <div className="LevelCanvas-inner" style={{ transform: `scale(${zoom})` }}>
+          <div
+            className="LevelCanvas"
+            style={{
+              width: size.width * CELL_SIZE,
+              height: size.height * CELL_SIZE,
+              gridTemplateColumns: `repeat(${size.width}, ${CELL_SIZE}px)`,
+              gridTemplateRows: `repeat(${size.height}, ${CELL_SIZE}px)`,
+            }}
+            onContextMenu={(ev) => {
+              ev.preventDefault();
+            }}
+            onMouseDown={(ev) => {
+              ev.preventDefault();
+              if (!runtimeContext || !activeTool?.behavior.onPointerDown) return;
+              const pe = toPointerEvent(ev, 'down', zoom);
+              if (!pe) return;
+              activeTool.behavior.onPointerDown(runtimeContext, pe);
+            }}
+            onMouseMove={(ev) => {
+              if (!runtimeContext || !activeTool?.behavior.onPointerMove) return;
+              const pe = toPointerEvent(ev, 'move', zoom);
+              if (!pe) return;
+              activeTool.behavior.onPointerMove(runtimeContext, pe);
+            }}
+            onMouseUp={(ev) => {
+              if (!runtimeContext || !activeTool?.behavior.onPointerUp) return;
+              const pe = toPointerEvent(ev, 'up', zoom);
+              if (!pe) return;
+              activeTool.behavior.onPointerUp(runtimeContext, pe);
+            }}
+          >
+            {cells}
+          </div>
+
+          <div
+            className="LevelCanvas-overlays"
+            style={{
+              width: size.width * CELL_SIZE,
+              height: size.height * CELL_SIZE,
+            }}
+          >
+            {overlays.map((shape) => {
+              if (shape.kind === 'label') {
+                const left = shape.coords.x * CELL_SIZE;
+                const top = shape.coords.y * CELL_SIZE;
+                return (
+                  <div
+                    key={shape.id ?? `overlay-${shape.coords.x}-${shape.coords.y}-${shape.text}`}
+                    className="Overlay-label"
+                    style={{
+                      left,
+                      top,
+                      width: CELL_SIZE,
+                      height: CELL_SIZE,
+                    }}
+                  >
+                    {shape.text}
+                  </div>
+                );
+              }
+              // Lines/rects can be added later (TS24).
+              return null;
+            })}
+          </div>
         </div>
       </div>
     </div>

@@ -22,6 +22,7 @@ import type { CC1Cell } from '../core/game/cc1/cc1Types';
 
 import { useEffect } from 'react';
 import { createToolRuntimeContext } from '../core/app/toolRuntime';
+import type { OverlayProvider } from '../core/plugin/panelTypes';
 
 export interface EditorRootProps {
   useEditorStore: UseBoundStore<StoreApi<EditorStoreState<CC1Cell>>>;
@@ -41,6 +42,14 @@ export const EditorRoot: React.FC<EditorRootProps> = ({
     : undefined;
   const allTools = pluginRegistry.getTools(); // Map -> array
   const allGenerators = pluginRegistry.getGenerators();
+  const allPanels = pluginRegistry.getPanels();
+
+  const overlayPanels = allPanels.filter((p) => p.overlayProvider !== undefined);
+  const overlayProviders: OverlayProvider<CC1Cell>[] = overlayPanels
+    .map((p) => p.overlayProvider)
+    .filter((prov): prov is OverlayProvider<CC1Cell> => prov !== undefined);
+  const overlaysEnabled = useEditorStore((s) => s.history.present.viewState.overlaysEnabled);
+  const setOverlayEnabled = useEditorStore((s) => s.setOverlayEnabled);
 
   const paletteSelection = useEditorStore((s) => s.history.present.paletteSelection);
   const setLeftPaletteTile = useEditorStore((s) => s.setLeftPaletteTile);
@@ -220,6 +229,10 @@ export const EditorRoot: React.FC<EditorRootProps> = ({
     });
   };
 
+  const handleToggleOverlay = (id: string, enabled: boolean) => {
+    setOverlayEnabled(id, enabled);
+  };
+
   return (
     <>
       <TopToolbar
@@ -246,6 +259,8 @@ export const EditorRoot: React.FC<EditorRootProps> = ({
           gameDefinition={gameDefinition}
           useEditorStore={useEditorStore}
           activeTool={activeTool ?? null}
+          overlayProviders={overlayProviders}
+          overlaysEnabled={overlaysEnabled}
         />
 
         <RightSidebar
@@ -266,6 +281,9 @@ export const EditorRoot: React.FC<EditorRootProps> = ({
           generators={allGenerators}
           useEditorStore={useEditorStore}
           gameDefinition={gameDefinition}
+          overlayPanels={overlayPanels}
+          overlaysEnabled={overlaysEnabled}
+          onToggleOverlay={handleToggleOverlay}
         />
 
         <StatusBar
