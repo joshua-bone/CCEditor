@@ -28,6 +28,32 @@ export interface LevelCanvasProps {
 
 const CELL_SIZE = 24;
 
+function setCanvasSize(
+  canvas: HTMLCanvasElement,
+  logicalWidth: number,
+  logicalHeight: number,
+): { ctx: CanvasRenderingContext2D; dpr: number } | null {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    return null;
+  }
+
+  const dpr = window.devicePixelRatio || 1;
+
+  const requiredWidth = Math.floor(logicalWidth * dpr);
+  const requiredHeight = Math.floor(logicalHeight * dpr);
+
+  if (canvas.width !== requiredWidth || canvas.height !== requiredHeight) {
+    canvas.width = requiredWidth;
+    canvas.height = requiredHeight;
+  }
+
+  // Reset transform and apply DPR scaling (zoom is handled via CSS).
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  return { ctx, dpr };
+}
+
 export const LevelCanvas: React.FC<LevelCanvasProps> = ({
   level,
   selection,
@@ -85,27 +111,16 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
       return;
     }
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      return;
-    }
-
     const { width, height } = flattened.size;
     const logicalWidth = width * CELL_SIZE;
     const logicalHeight = height * CELL_SIZE;
 
-    const dpr = window.devicePixelRatio || 1;
-
-    // Ensure canvas backing store matches logical size * DPR.
-    if (canvas.width !== logicalWidth * dpr || canvas.height !== logicalHeight * dpr) {
-      canvas.width = logicalWidth * dpr;
-      canvas.height = logicalHeight * dpr;
+    const sized = setCanvasSize(canvas, logicalWidth, logicalHeight);
+    if (!sized) {
+      return;
     }
+    const { ctx } = sized;
 
-    // Reset transform and apply DPR scaling; zoom is handled via CSS on the wrapper.
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    // Clear full logical area.
     ctx.clearRect(0, 0, logicalWidth, logicalHeight);
 
     // Basic styles for text drawing.
@@ -261,20 +276,78 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
     };
   }
 
+  interface NavigatorWithUAData extends Navigator {
+    userAgentData?: {
+      platform?: string;
+    };
+  }
+
+  function isMacPlatform(nav: Navigator = navigator): boolean {
+    const navWithUA = nav as NavigatorWithUAData;
+
+    const platformFromUAData = navWithUA.userAgentData?.platform;
+    if (platformFromUAData) {
+      return platformFromUAData.toLowerCase().includes('mac');
+    }
+
+    // Fallback for Safari / Firefox / older browsers
+    return /macintosh|mac os x/i.test(nav.userAgent);
+  }
+
   return (
     <div className="LevelCanvas-wrapper">
       <div className="CanvasToolbar">
         <span className="CanvasToolbar-label">Zoom:</span>
-        <button type="button" onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))}>
+        <button
+          type="button"
+          onClick={() => setZoom((z) => Math.max(0.1, Math.round((z - 0.1) * 10) / 10))}
+        >
           –
         </button>
-        <button type="button" onClick={() => setZoom((z) => Math.min(3, z + 0.25))}>
+        <button
+          type="button"
+          onClick={() => setZoom((z) => Math.min(2, Math.round((z + 0.1) * 10) / 10))}
+        >
           +
         </button>
+        <input
+          type="range"
+          min={0.1}
+          max={2}
+          step={0.01}
+          value={zoom}
+          onChange={(e) => {
+            const parsed = Number(e.target.value);
+            if (!Number.isNaN(parsed)) {
+              setZoom(parsed);
+            }
+          }}
+        />
         <span className="CanvasToolbar-zoomValue">{Math.round(zoom * 100)}%</span>
       </div>
 
-      <div className="LevelCanvas-scroll">
+      <div
+        className="LevelCanvas-scroll"
+        onWheel={(ev) => {
+          const ctrlOrCmd = isMacPlatform() ? ev.metaKey : ev.ctrlKey;
+
+          if (!ctrlOrCmd) {
+            // Let normal scrolling happen; no zoom.
+            return;
+          }
+
+          // Ctrl/Cmd held → zoom, no scroll.
+          ev.preventDefault();
+          ev.stopPropagation();
+
+          const zoomDelta = -ev.deltaY * 0.001; // tune sensitivity
+          setZoom((z) => {
+            const next = z + zoomDelta;
+            const clamped = Math.min(3, Math.max(0.5, next));
+            return clamped;
+          });
+        }}
+      >
         <div
           className="LevelCanvas-inner"
           style={{

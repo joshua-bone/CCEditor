@@ -557,4 +557,9 @@ body {
   display: block;
 }
 
+.CanvasToolbar input[type='range'] {
+  flex: 0 0 120px;
+}
+
+
 
