@@ -13,7 +13,6 @@ import type { PointerEvent as ToolPointerEvent, KeyModifiers } from '../core/plu
 import { createToolRuntimeContext } from '../core/app/toolRuntime';
 import type { CC1Cell } from '../core/game/cc1/cc1Types';
 import { CC1TileId, cc1TileIdToName } from '../core/game/cc1/cc1Tiles';
-import type { Coords } from '../core/model/types';
 import type { OverlayProvider, OverlayShape } from '../core/plugin/panelTypes';
 
 export interface LevelCanvasProps {
@@ -220,48 +219,7 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
       ? createToolRuntimeContext(useEditorStore, gameDefinition as GameDefinition<CC1Cell>)
       : null;
 
-  const { size, grid } = flattened;
-
-  const isSelected = (x: number, y: number): boolean => {
-    if (!selection) return false;
-    return x >= selection.x1 && x <= selection.x2 && y >= selection.y1 && y <= selection.y2;
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleCellClick = (_coords: Coords): void => {
-    // Placeholder for future click behavior; brush painting uses pointer events instead.
-  };
-
-  const cells: React.ReactNode[] = Array.from({ length: size.height * size.width }, (_, index) => {
-    const col = index % size.width;
-    const row = Math.floor(index / size.width);
-
-    const cell = grid.get({ x: col, y: row }) as GameCellBase;
-    const selected = isSelected(col, row);
-
-    let label = '·';
-
-    if (gameDefinition?.gameId === 'cc1' && symbolsById) {
-      const cc1Cell = cell as CC1Cell;
-      const topCode = cc1Cell.top ?? CC1TileId.FLOOR;
-      const tileName = cc1TileIdToName(topCode);
-      const symbol = symbolsById.get(tileName) ?? '■';
-      label = symbol;
-    } else {
-      const hasTop = (cell as { top?: unknown }).top !== undefined;
-      label = hasTop ? '■' : '·';
-    }
-
-    return (
-      <div
-        key={`${col}-${row}`}
-        className={'LevelCanvas-cell' + (selected ? ' LevelCanvas-cell--selected' : '')}
-        onClick={() => handleCellClick({ x: col, y: row })}
-      >
-        {label}
-      </div>
-    );
-  });
+  const { size } = flattened;
 
   function toKeyModifiers(ev: React.MouseEvent<HTMLCanvasElement>): KeyModifiers {
     return {
@@ -317,90 +275,46 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
       </div>
 
       <div className="LevelCanvas-scroll">
-        <div className="LevelCanvas-inner" style={{ transform: `scale(${zoom})` }}>
-          {/* Canvas view (for C2D debugging) */}
-          <div className="LevelCanvas-layer">
-            <div className="LevelCanvas-layerTitle">Canvas2D</div>
-            <canvas
-              ref={canvasRef}
-              className="LevelCanvas-canvas"
-              width={size.width * CELL_SIZE}
-              height={size.height * CELL_SIZE}
-              style={{
-                width: size.width * CELL_SIZE,
-                height: size.height * CELL_SIZE,
-              }}
-              onContextMenu={(ev) => {
-                ev.preventDefault();
-              }}
-              onMouseDown={(ev) => {
-                ev.preventDefault();
-                if (!runtimeContext || !activeTool?.behavior.onPointerDown) return;
-                const pe = toPointerEvent(ev, 'down', zoom);
-                if (!pe) return;
-                activeTool.behavior.onPointerDown(runtimeContext, pe);
-              }}
-              onMouseMove={(ev) => {
-                if (!runtimeContext || !activeTool?.behavior.onPointerMove) return;
-                const pe = toPointerEvent(ev, 'move', zoom);
-                if (!pe) return;
-                activeTool.behavior.onPointerMove(runtimeContext, pe);
-              }}
-              onMouseUp={(ev) => {
-                if (!runtimeContext || !activeTool?.behavior.onPointerUp) return;
-                const pe = toPointerEvent(ev, 'up', zoom);
-                if (!pe) return;
-                activeTool.behavior.onPointerUp(runtimeContext, pe);
-              }}
-            />
-          </div>
-
-          {/* DOM grid view (current production view) */}
-          <div className="LevelCanvas-layer">
-            <div className="LevelCanvas-layerTitle">DOM grid</div>
-            <div
-              className="LevelCanvas"
-              style={{
-                width: size.width * CELL_SIZE,
-                height: size.height * CELL_SIZE,
-                gridTemplateColumns: `repeat(${size.width}, ${CELL_SIZE}px)`,
-                gridTemplateRows: `repeat(${size.height}, ${CELL_SIZE}px)`,
-              }}
-            >
-              {cells}
-            </div>
-
-            <div
-              className="LevelCanvas-overlays"
-              style={{
-                width: size.width * CELL_SIZE,
-                height: size.height * CELL_SIZE,
-              }}
-            >
-              {overlays.map((shape) => {
-                if (shape.kind === 'label') {
-                  const left = shape.coords.x * CELL_SIZE;
-                  const top = shape.coords.y * CELL_SIZE;
-                  return (
-                    <div
-                      key={shape.id ?? `overlay-${shape.coords.x}-${shape.coords.y}-${shape.text}`}
-                      className="Overlay-label"
-                      style={{
-                        left,
-                        top,
-                        width: CELL_SIZE,
-                        height: CELL_SIZE,
-                      }}
-                    >
-                      {shape.text}
-                    </div>
-                  );
-                }
-                // Lines/rects can be added later.
-                return null;
-              })}
-            </div>
-          </div>
+        <div
+          className="LevelCanvas-inner"
+          style={{
+            transform: `scale(${zoom})`,
+            width: size.width * CELL_SIZE,
+            height: size.height * CELL_SIZE,
+          }}
+        >
+          <canvas
+            ref={canvasRef}
+            className="LevelCanvas-canvas"
+            width={size.width * CELL_SIZE}
+            height={size.height * CELL_SIZE}
+            style={{
+              width: size.width * CELL_SIZE,
+              height: size.height * CELL_SIZE,
+            }}
+            onContextMenu={(ev) => {
+              ev.preventDefault();
+            }}
+            onMouseDown={(ev) => {
+              ev.preventDefault();
+              if (!runtimeContext || !activeTool?.behavior.onPointerDown) return;
+              const pe = toPointerEvent(ev, 'down', zoom);
+              if (!pe) return;
+              activeTool.behavior.onPointerDown(runtimeContext, pe);
+            }}
+            onMouseMove={(ev) => {
+              if (!runtimeContext || !activeTool?.behavior.onPointerMove) return;
+              const pe = toPointerEvent(ev, 'move', zoom);
+              if (!pe) return;
+              activeTool.behavior.onPointerMove(runtimeContext, pe);
+            }}
+            onMouseUp={(ev) => {
+              if (!runtimeContext || !activeTool?.behavior.onPointerUp) return;
+              const pe = toPointerEvent(ev, 'up', zoom);
+              if (!pe) return;
+              activeTool.behavior.onPointerUp(runtimeContext, pe);
+            }}
+          />
         </div>
       </div>
     </div>
