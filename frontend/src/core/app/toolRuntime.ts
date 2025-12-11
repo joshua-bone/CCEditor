@@ -7,6 +7,7 @@ import type { SelectionRect } from '../model/selection';
 import type { Coords } from '../model/types';
 import type { LevelWithLayers } from '../model/layers';
 import type { LayerClipboard } from '../model/clipboard';
+import { linePoints, rectFillPoints } from './paintGeometry';
 
 export function createToolRuntimeContext<TCell extends GameCellBase>(
   useEditorStore: UseBoundStore<StoreApi<EditorStoreState<TCell>>>,
@@ -57,6 +58,30 @@ export function createToolRuntimeContext<TCell extends GameCellBase>(
       });
     },
 
+    paintLine(from, to, tileId, button, mode = 'normal') {
+      const points = linePoints(from, to);
+      if (points.length === 0) {
+        return;
+      }
+      this.paintStroke(points, tileId, button, mode);
+    },
+
+    fillRect(rect, tileId, button, mode = 'normal') {
+      const topLeft: Coords = {
+        x: Math.min(rect.x1, rect.x2),
+        y: Math.min(rect.y1, rect.y2),
+      };
+      const bottomRight: Coords = {
+        x: Math.max(rect.x1, rect.x2),
+        y: Math.max(rect.y1, rect.y2),
+      };
+      const points = rectFillPoints(topLeft, bottomRight);
+      if (points.length === 0) {
+        return;
+      }
+      this.paintStroke(points, tileId, button, mode);
+    },
+
     setSelection(rect: SelectionRect | null): void {
       const { dispatchCommand } = useEditorStore.getState();
       if (rect) {
@@ -73,10 +98,12 @@ export function createToolRuntimeContext<TCell extends GameCellBase>(
       // Will be implemented in TS21; no-op for now.
     },
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     pasteClipboardAt(_anchor: Coords): void {
       // Will be implemented in TS21; no-op for now.
     },
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     newLayerFromSelection(_newLayerName?: string): void {
       // Will be implemented in TS21; no-op for now.
     },

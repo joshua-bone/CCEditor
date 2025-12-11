@@ -6,6 +6,8 @@ import { datLayersJsonFileFormat } from './cc1/datLayersJsonFileFormat';
 import { cc1DatFileFormat } from './cc1/datFileFormat';
 import { createCC1GameDefinition } from '../game/cc1/cc1GameDefinition';
 import { brushToolDescriptor } from './cc1/brushToolPlugin';
+import { lineToolDescriptor } from './cc1/lineToolPlugin';
+import { rectToolDescriptor, ovalToolDescriptor } from './cc1/rectOvalToolPlugin';
 
 const cc1Def = createCC1GameDefinition();
 
@@ -32,6 +34,23 @@ export const builtinPlugins: Plugin<CC1Cell>[] = [
     displayName: 'Brush Tool',
     activate(ctx) {
       ctx.registerTool(brushToolDescriptor);
+    },
+  },
+  {
+    id: 'plugin.tools.line',
+    type: 'bundle',
+    displayName: 'Line Tool',
+    activate(ctx) {
+      ctx.registerTool(lineToolDescriptor);
+    },
+  },
+  {
+    id: 'plugin.tools.rectOval',
+    type: 'bundle',
+    displayName: 'Rectangle & Oval Tools',
+    activate(ctx) {
+      ctx.registerTool(rectToolDescriptor);
+      ctx.registerTool(ovalToolDescriptor);
     },
   },
 ];
