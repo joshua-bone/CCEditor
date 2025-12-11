@@ -25,6 +25,9 @@ export interface EditorStoreState<TCell extends GameCellBase = GameCellBase> {
 
   loadStateFromProject(state: EditorState<TCell>): void;
 
+  setOverlayEnabled(id: string, enabled: boolean): void;
+  toggleOverlay(id: string): void;
+
   setLeftPaletteTile(tileId: string | null): void;
   setRightPaletteTile(tileId: string | null): void;
 
@@ -147,6 +150,55 @@ export function createEditorStore<TCell extends GameCellBase>(
 
       const clipboard = copySelection(level, selection, level.activeLayerId);
       state.setClipboard(clipboard);
+    },
+
+    setOverlayEnabled(id, enabled) {
+      set((state) => {
+        const present = state.history.present;
+        const nextViewState = {
+          ...present.viewState,
+          overlaysEnabled: {
+            ...present.viewState.overlaysEnabled,
+            [id]: enabled,
+          },
+        };
+        const nextPresent: EditorState<TCell> = {
+          ...present,
+          viewState: nextViewState,
+        };
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            present: nextPresent,
+          },
+        };
+      });
+    },
+
+    toggleOverlay(id) {
+      set((state) => {
+        const present = state.history.present;
+        const currentEnabled = present.viewState.overlaysEnabled[id] ?? false;
+        const nextViewState = {
+          ...present.viewState,
+          overlaysEnabled: {
+            ...present.viewState.overlaysEnabled,
+            [id]: !currentEnabled,
+          },
+        };
+        const nextPresent: EditorState<TCell> = {
+          ...present,
+          viewState: nextViewState,
+        };
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            present: nextPresent,
+          },
+        };
+      });
     },
   }));
 }

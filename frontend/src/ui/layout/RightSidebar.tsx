@@ -9,6 +9,8 @@ import type { GameCellBase } from '../../core/model/gameTypes';
 import type { EditorStoreState } from '../../core/app/editorStore';
 import type { CC1Cell } from '../../core/game/cc1/cc1Types';
 import { GeneratorsPanel } from './GeneratorsPanel';
+import type { PanelDescriptor } from '../../core/plugin/panelTypes';
+import { OverlaysPanel } from './OverlaysPanel';
 
 interface RightSidebarProps {
   tiles: TileDescriptor[];
@@ -26,6 +28,9 @@ interface RightSidebarProps {
   onMoveLayer(layerId: string, direction: 'up' | 'down'): void;
   onNewLayerFromSelection(): void;
   onRenameLayer(layerId: string, name: string): void;
+  overlayPanels: PanelDescriptor<CC1Cell>[];
+  overlaysEnabled: Record<string, boolean>;
+  onToggleOverlay(id: string, enabled: boolean): void;
 
   generators: GeneratorDescriptor<CC1Cell>[];
   useEditorStore: UseBoundStore<StoreApi<EditorStoreState<CC1Cell>>>;
@@ -48,6 +53,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = (props) => {
     onMoveLayer,
     onNewLayerFromSelection,
     onRenameLayer,
+    overlayPanels,
+    overlaysEnabled,
+    onToggleOverlay,
     generators,
     useEditorStore,
     gameDefinition,
@@ -84,6 +92,14 @@ export const RightSidebar: React.FC<RightSidebarProps> = (props) => {
         generators={generators}
         useEditorStore={useEditorStore}
         gameDefinition={gameDefinition as GameDefinition<CC1Cell> | undefined}
+      />
+
+      <hr className="Sidebar-separator" />
+
+      <OverlaysPanel
+        panels={overlayPanels}
+        overlaysEnabled={overlaysEnabled}
+        onToggleOverlay={onToggleOverlay}
       />
     </aside>
   );

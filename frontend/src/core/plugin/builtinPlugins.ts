@@ -10,6 +10,7 @@ import { lineToolDescriptor } from './cc1/lineToolPlugin';
 import { rectToolDescriptor, ovalToolDescriptor } from './cc1/rectOvalToolPlugin';
 import { selectionToolDescriptor } from './cc1/selectionToolPlugin';
 import { randomNoiseGenerator } from './cc1/randomNoiseGenerator';
+import { monsterOrderPanelDescriptor } from './cc1/monsterOrderOverlay';
 
 const cc1Def = createCC1GameDefinition();
 
@@ -69,6 +70,15 @@ export const builtinPlugins: Plugin<CC1Cell>[] = [
     displayName: 'Random Noise Generator',
     activate(ctx) {
       ctx.registerGenerator(randomNoiseGenerator);
+    },
+  },
+  {
+    id: 'plugin.overlays.monsterOrder',
+    type: 'bundle',
+    displayName: 'Monster Order Overlay',
+    activate(ctx) {
+      ctx.registerPanel(monsterOrderPanelDescriptor);
+      // You can also register stub panels for secrets/connections here in TS24.
     },
   },
 ];

@@ -577,3 +577,26 @@ body {
   display: flex;
   gap: 0.25rem;
 }
+
+.LevelCanvas-inner {
+  position: relative;
+  transform-origin: top left;
+}
+
+.LevelCanvas-overlays {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.Overlay-label {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #d32f2f;
+  text-shadow: 0 0 2px #ffffff;
+}
