@@ -40,6 +40,7 @@ export const EditorRoot: React.FC<EditorRootProps> = ({
     ? (pluginRegistry.getTool(activeToolId) as ToolDescriptor<CC1Cell> | undefined)
     : undefined;
   const allTools = pluginRegistry.getTools(); // Map -> array
+  const allGenerators = pluginRegistry.getGenerators();
 
   const paletteSelection = useEditorStore((s) => s.history.present.paletteSelection);
   const setLeftPaletteTile = useEditorStore((s) => s.setLeftPaletteTile);
@@ -262,6 +263,9 @@ export const EditorRoot: React.FC<EditorRootProps> = ({
           onMoveLayer={handleMoveLayer}
           onNewLayerFromSelection={handleNewLayerFromSelection}
           onRenameLayer={handleRenameLayer}
+          generators={allGenerators}
+          useEditorStore={useEditorStore}
+          gameDefinition={gameDefinition}
         />
 
         <StatusBar
