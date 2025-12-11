@@ -1,6 +1,6 @@
 // frontend/src/ui/LevelCanvas.tsx
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import type { LevelWithLayers } from '../core/model/layers';
 import type { SelectionRect } from '../core/model/selection';
 import type { GameDefinition } from '../core/game/gameDefinition';
@@ -39,6 +39,7 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
   overlaysEnabled,
 }) => {
   const [zoom, setZoom] = useState(1.0);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const flattened = useMemo(() => {
     if (!level || !gameDefinition) return null;
@@ -185,6 +186,16 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
       </div>
       <div className="LevelCanvas-scroll">
         <div className="LevelCanvas-inner" style={{ transform: `scale(${zoom})` }}>
+          <canvas
+            ref={canvasRef}
+            className="LevelCanvas-canvas"
+            width={size.width * CELL_SIZE}
+            height={size.height * CELL_SIZE}
+            style={{
+              width: size.width * CELL_SIZE,
+              height: size.height * CELL_SIZE,
+            }}
+          />
           <div
             className="LevelCanvas"
             style={{
