@@ -14,6 +14,7 @@ import { createToolRuntimeContext } from '../core/app/toolRuntime';
 import type { CC1Cell } from '../core/game/cc1/cc1Types';
 import { CC1TileId, cc1TileIdToName } from '../core/game/cc1/cc1Tiles';
 import type { OverlayProvider, OverlayShape } from '../core/plugin/panelTypes';
+import type { Coords } from '../core/model/types';
 
 export interface LevelCanvasProps {
   level: LevelWithLayers<GameCellBase> | undefined;
@@ -52,6 +53,49 @@ function setCanvasSize(
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   return { ctx, dpr };
+}
+
+function drawCell(
+  ctx: CanvasRenderingContext2D,
+  coords: Coords,
+  cell: GameCellBase,
+  gameDefinition: GameDefinition<GameCellBase> | undefined,
+  tileSymbolLookup: Map<string, string> | null,
+): void {
+  const { x, y } = coords;
+  const px = x * CELL_SIZE;
+  const py = y * CELL_SIZE;
+
+  // Determine label based on current CC1/non-CC1 logic.
+  let label = '·';
+
+  if (gameDefinition?.gameId === 'cc1' && tileSymbolLookup) {
+    const cc1Cell = cell as CC1Cell;
+    const topCode = cc1Cell.top ?? CC1TileId.FLOOR;
+    const tileName = cc1TileIdToName(topCode);
+    const symbol = tileSymbolLookup.get(tileName) ?? '■';
+    label = symbol;
+  } else {
+    const hasTop = (cell as { top?: unknown }).top !== undefined;
+    label = hasTop ? '■' : '·';
+  }
+
+  // Background
+  ctx.fillStyle = '#f8f8f8';
+  ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
+
+  // Grid border
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(px, py, CELL_SIZE, CELL_SIZE);
+
+  // Glyph
+  ctx.fillStyle = '#000000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `${CELL_SIZE * 0.6}px system-ui`;
+
+  ctx.fillText(label, px + CELL_SIZE / 2, py + CELL_SIZE / 2);
 }
 
 export const LevelCanvas: React.FC<LevelCanvasProps> = ({
@@ -130,37 +174,9 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
 
     for (let y = 0; y < height; y += 1) {
       for (let x = 0; x < width; x += 1) {
-        const cell = flattened.grid.get({ x, y }) as GameCellBase;
-
-        // Compute label using the same logic as for the DOM grid.
-        let label = '·';
-
-        if (gameDefinition?.gameId === 'cc1' && symbolsById) {
-          const cc1Cell = cell as CC1Cell;
-          const topCode = cc1Cell.top ?? CC1TileId.FLOOR;
-          const tileName = cc1TileIdToName(topCode);
-          const symbol = symbolsById.get(tileName) ?? '■';
-          label = symbol;
-        } else {
-          const hasTop = (cell as { top?: unknown }).top !== undefined;
-          label = hasTop ? '■' : '·';
-        }
-
-        const px = x * CELL_SIZE;
-        const py = y * CELL_SIZE;
-
-        // Background
-        ctx.fillStyle = '#f8f8f8';
-        ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
-
-        // Grid lines (optional; comment out if too noisy)
-        ctx.strokeStyle = 'rgba(0,0,0,0.12)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(px, py, CELL_SIZE, CELL_SIZE);
-
-        // Glyph
-        ctx.fillStyle = '#000000';
-        ctx.fillText(label, px + CELL_SIZE / 2, py + CELL_SIZE / 2);
+        const coords: Coords = { x, y };
+        const cell = flattened.grid.get(coords) as GameCellBase;
+        drawCell(ctx, coords, cell, gameDefinition, symbolsById);
       }
     }
     if (selection) {
@@ -276,24 +292,6 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
     };
   }
 
-  interface NavigatorWithUAData extends Navigator {
-    userAgentData?: {
-      platform?: string;
-    };
-  }
-
-  function isMacPlatform(nav: Navigator = navigator): boolean {
-    const navWithUA = nav as NavigatorWithUAData;
-
-    const platformFromUAData = navWithUA.userAgentData?.platform;
-    if (platformFromUAData) {
-      return platformFromUAData.toLowerCase().includes('mac');
-    }
-
-    // Fallback for Safari / Firefox / older browsers
-    return /macintosh|mac os x/i.test(nav.userAgent);
-  }
-
   return (
     <div className="LevelCanvas-wrapper">
       <div className="CanvasToolbar">
@@ -329,21 +327,32 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
       <div
         className="LevelCanvas-scroll"
         onWheel={(ev) => {
-          const ctrlOrCmd = isMacPlatform() ? ev.metaKey : ev.ctrlKey;
+          const zoomModifier = ev.ctrlKey || ev.metaKey;
 
-          if (!ctrlOrCmd) {
-            // Let normal scrolling happen; no zoom.
+          if (!zoomModifier) {
+            // No modifier → normal scroll, no zoom.
             return;
           }
 
-          // Ctrl/Cmd held → zoom, no scroll.
+          // Modifier (Ctrl/Cmd) held → zoom only, no scroll.
           ev.preventDefault();
           ev.stopPropagation();
+
+          const container = ev.currentTarget;
+          const prevScrollTop = container.scrollTop;
+          const prevScrollLeft = container.scrollLeft;
 
           const zoomDelta = -ev.deltaY * 0.001; // tune sensitivity
           setZoom((z) => {
             const next = z + zoomDelta;
-            const clamped = Math.min(3, Math.max(0.5, next));
+            const clamped = Math.min(2, Math.max(0.1, next));
+
+            // After React updates layout, restore scroll offset to prevent jump.
+            requestAnimationFrame(() => {
+              container.scrollTop = prevScrollTop;
+              container.scrollLeft = prevScrollLeft;
+            });
+
             return clamped;
           });
         }}
