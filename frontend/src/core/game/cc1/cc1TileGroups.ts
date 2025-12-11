@@ -174,31 +174,76 @@ export const CC1_TOGGLE_TILES: ReadonlySet<CC1TileIdType> = new Set([
 ]);
 
 // --- Convenience predicates -------------------------------------------------
-export const isCC1Tile = (t: CC1TileIdType): boolean => CC1_ALL_TILES.has(t);
-export const isCC1ValidTile = (t: CC1TileIdType): boolean => CC1_VALID_TILES.has(t);
-export const isCC1InvalidTile = (t: CC1TileIdType): boolean => CC1_INVALID_TILES.has(t);
-export const isCC1Ice = (t: CC1TileIdType): boolean => CC1_ICE_TILES.has(t);
-export const isCC1ForceFloor = (t: CC1TileIdType): boolean => CC1_FORCE_TILES.has(t);
-export const isCC1Wall = (t: CC1TileIdType): boolean => CC1_WALL_TILES.has(t);
-export const isCC1Panel = (t: CC1TileIdType): boolean => CC1_PANEL_TILES.has(t);
-export const isCC1CloneBlock = (t: CC1TileIdType): boolean => CC1_CLONE_BLOCK_TILES.has(t);
-export const isCC1Block = (t: CC1TileIdType): boolean => CC1_BLOCK_TILES.has(t);
-export const isCC1Player = (t: CC1TileIdType): boolean => CC1_PLAYER_TILES.has(t);
-export const isCC1Ant = (t: CC1TileIdType): boolean => CC1_ANT_TILES.has(t);
-export const isCC1Paramecium = (t: CC1TileIdType): boolean => CC1_PARAMECIUM_TILES.has(t);
-export const isCC1Glider = (t: CC1TileIdType): boolean => CC1_GLIDER_TILES.has(t);
-export const isCC1Fireball = (t: CC1TileIdType): boolean => CC1_FIREBALL_TILES.has(t);
-export const isCC1Tank = (t: CC1TileIdType): boolean => CC1_TANK_TILES.has(t);
-export const isCC1Ball = (t: CC1TileIdType): boolean => CC1_BALL_TILES.has(t);
-export const isCC1Walker = (t: CC1TileIdType): boolean => CC1_WALKER_TILES.has(t);
-export const isCC1Teeth = (t: CC1TileIdType): boolean => CC1_TEETH_TILES.has(t);
-export const isCC1Blob = (t: CC1TileIdType): boolean => CC1_BLOB_TILES.has(t);
-export const isCC1Monster = (t: CC1TileIdType): boolean => CC1_MONSTER_TILES.has(t);
-export const isCC1Mob = (t: CC1TileIdType): boolean => CC1_MOB_TILES.has(t);
-export const isCC1NonMob = (t: CC1TileIdType): boolean => CC1_NONMOB_TILES.has(t);
-export const isCC1Door = (t: CC1TileIdType): boolean => CC1_DOOR_TILES.has(t);
-export const isCC1Key = (t: CC1TileIdType): boolean => CC1_KEY_TILES.has(t);
-export const isCC1Boot = (t: CC1TileIdType): boolean => CC1_BOOT_TILES.has(t);
-export const isCC1Pickup = (t: CC1TileIdType): boolean => CC1_PICKUP_TILES.has(t);
-export const isCC1Button = (t: CC1TileIdType): boolean => CC1_BUTTON_TILES.has(t);
-export const isCC1Toggle = (t: CC1TileIdType): boolean => CC1_TOGGLE_TILES.has(t);
+export const isCC1Tile = (t: CC1TileIdType | null): t is CC1TileIdType =>
+  t !== null && CC1_ALL_TILES.has(t);
+
+export const isCC1ValidTile = (t: CC1TileIdType | null): t is CC1TileIdType =>
+  t !== null && CC1_VALID_TILES.has(t);
+
+export const isCC1InvalidTile = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_INVALID_TILES.has(t);
+
+export const isCC1Ice = (t: CC1TileIdType | null): boolean => t !== null && CC1_ICE_TILES.has(t);
+
+export const isCC1ForceFloor = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_FORCE_TILES.has(t);
+
+export const isCC1Wall = (t: CC1TileIdType | null): boolean => t !== null && CC1_WALL_TILES.has(t);
+
+export const isCC1Panel = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_PANEL_TILES.has(t);
+
+export const isCC1CloneBlock = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_CLONE_BLOCK_TILES.has(t);
+
+export const isCC1Block = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_BLOCK_TILES.has(t);
+
+export const isCC1Player = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_PLAYER_TILES.has(t);
+
+export const isCC1Ant = (t: CC1TileIdType | null): boolean => t !== null && CC1_ANT_TILES.has(t);
+
+export const isCC1Paramecium = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_PARAMECIUM_TILES.has(t);
+
+export const isCC1Glider = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_GLIDER_TILES.has(t);
+
+export const isCC1Fireball = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_FIREBALL_TILES.has(t);
+
+export const isCC1Tank = (t: CC1TileIdType | null): boolean => t !== null && CC1_TANK_TILES.has(t);
+
+export const isCC1Ball = (t: CC1TileIdType | null): boolean => t !== null && CC1_BALL_TILES.has(t);
+
+export const isCC1Walker = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_WALKER_TILES.has(t);
+
+export const isCC1Teeth = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_TEETH_TILES.has(t);
+
+export const isCC1Blob = (t: CC1TileIdType | null): boolean => t !== null && CC1_BLOB_TILES.has(t);
+
+export const isCC1Monster = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_MONSTER_TILES.has(t);
+
+export const isCC1Mob = (t: CC1TileIdType | null): boolean => t !== null && CC1_MOB_TILES.has(t);
+
+export const isCC1NonMob = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_NONMOB_TILES.has(t);
+
+export const isCC1Door = (t: CC1TileIdType | null): boolean => t !== null && CC1_DOOR_TILES.has(t);
+
+export const isCC1Key = (t: CC1TileIdType | null): boolean => t !== null && CC1_KEY_TILES.has(t);
+
+export const isCC1Boot = (t: CC1TileIdType | null): boolean => t !== null && CC1_BOOT_TILES.has(t);
+
+export const isCC1Pickup = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_PICKUP_TILES.has(t);
+
+export const isCC1Button = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_BUTTON_TILES.has(t);
+
+export const isCC1Toggle = (t: CC1TileIdType | null): boolean =>
+  t !== null && CC1_TOGGLE_TILES.has(t);

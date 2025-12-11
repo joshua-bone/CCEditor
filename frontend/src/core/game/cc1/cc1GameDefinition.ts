@@ -3,26 +3,19 @@
 import { createGrid } from '../../model/grid';
 import type { Size, Coords } from '../../model/types';
 import type { LevelWithLayers } from '../../model/layers';
-import type { GameLevel, GameLevelset } from '../../model/gameTypes';
+import type { GameLevel, GameLevelMetadata, GameLevelset } from '../../model/gameTypes';
 import type { GameDefinition, TileDescriptor, ValidationIssue } from '../gameDefinition';
 
 import { CC1TileId } from './cc1Tiles';
 import type { CC1TileId as CC1TileIdType, CC1TileName } from './cc1Tiles';
 import type { CC1Cell, CC1Level, CC1Levelset } from './cc1Types';
 
-import { CC1_INVALID_TILES, isCC1Mob } from './cc1TileGroups';
+import { CC1_INVALID_TILES, isCC1Mob, isCC1Monster } from './cc1TileGroups';
+import { cc1BuryPaint, cc1NormalPaint } from './cc1Paint';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function tileNameToId(name: string): CC1TileIdType | undefined {
-  // Expect palette IDs like "FLOOR", "WALL", "PLAYER_N", etc.
-  if (Object.prototype.hasOwnProperty.call(CC1TileId, name)) {
-    return CC1TileId[name as CC1TileName] as CC1TileIdType;
-  }
-  return undefined;
-}
 
 function asConcreteTile(tile: CC1TileIdType | null): CC1TileIdType {
   // Treat null as FLOOR; mirrors Python default-ish behavior
@@ -67,54 +60,6 @@ function isValidCC1Cell(cell: CC1Cell): boolean {
   const buriedMob = isCC1Mob(bottom);
 
   return !(buried || invalidCode || buriedMob);
-}
-
-// Python CC1Cell.add(elem) translated to immutable function
-function addTileToCell(cell: CC1Cell, elem: CC1TileIdType): CC1Cell {
-  const top = asConcreteTile(cell.top);
-  const isMob = isCC1Mob(elem);
-  const mobHere = isCC1Mob(top);
-
-  if (isMob) {
-    // If adding mob to terrain, move terrain to the bottom layer.
-    if (!mobHere) {
-      return {
-        ...cell,
-        bottom: top,
-        top: elem,
-      };
-    }
-    // Mob already here: replace mob, preserve terrain (bottom).
-    return {
-      ...cell,
-      top: elem,
-    };
-  }
-
-  // elem is terrain/other, not a mob.
-  if (mobHere) {
-    // If adding terrain where a mob exists, replace the terrain but not the mob.
-    return {
-      ...cell,
-      top,
-      bottom: elem,
-    };
-  }
-
-  // No mob here; just place elem on top.
-  return {
-    ...cell,
-    top: elem,
-  };
-}
-
-// "Bury" write: raw write to bottom, leaving top untouched.
-// This is intentionally allowed to create invalid combinations.
-function buryTileInCell(cell: CC1Cell, elem: CC1TileIdType): CC1Cell {
-  return {
-    ...cell,
-    bottom: elem,
-  };
 }
 
 // ---------------------------------------------------------------------------
@@ -272,21 +217,64 @@ function getCC1TilePalette(): TileDescriptor[] {
 // GameDefinition implementation
 // ---------------------------------------------------------------------------
 
-function applyNormalPaintCC1(cell: CC1Cell, tileName: string): CC1Cell {
-  const tile = tileNameToId(tileName);
-  if (tile === undefined) {
-    // Unknown tile ID: no-op
+// inside createCC1GameDefinition
+function applyNormalPaintCC1(cell: CC1Cell, tileId: string): CC1Cell {
+  const name = tileId as CC1TileName;
+  if (!(name in CC1TileId)) {
     return cell;
   }
-  return addTileToCell(cell, tile);
+  return cc1NormalPaint(cell, name);
 }
 
-function applyBuryPaintCC1(cell: CC1Cell, tileName: string): CC1Cell {
-  const tile = tileNameToId(tileName);
-  if (tile === undefined) {
+function applyBuryPaintCC1(cell: CC1Cell, tileId: string): CC1Cell {
+  const name = tileId as CC1TileName;
+  if (!(name in CC1TileId)) {
     return cell;
   }
-  return buryTileInCell(cell, tile);
+  return cc1BuryPaint(cell, name);
+}
+
+function updateMonsterOrderCC1(
+  level: LevelWithLayers<CC1Cell>,
+  coords: Coords,
+  newCell: CC1Cell,
+): LevelWithLayers<CC1Cell> {
+  const width = level.size.width;
+  const index = coords.y * width + coords.x;
+
+  const extra = level.meta.extra as { movement?: number[] } | undefined;
+  const oldMovement = extra?.movement ?? [];
+  const movement = oldMovement.slice();
+
+  const oldCell = level.layers[0].grid.get(coords) ?? {
+    gameId: 'cc1',
+    top: CC1TileId.FLOOR,
+    bottom: CC1TileId.FLOOR,
+  };
+  const wasMonster = isCC1Monster(oldCell.top) || isCC1Monster(oldCell.bottom);
+  const isMonster = isCC1Monster(newCell.top) || isCC1Monster(newCell.bottom);
+
+  if (wasMonster && !isMonster) {
+    const idx = movement.indexOf(index);
+    if (idx !== -1) {
+      movement.splice(idx, 1);
+    }
+  } else if (!wasMonster && isMonster && movement.length < 127) {
+    movement.push(index);
+  }
+
+  const newMeta: GameLevelMetadata = {
+    ...level.meta,
+    extra: {
+      ...(level.meta.extra ?? {}),
+      movement,
+    },
+  };
+
+  return {
+    ...level,
+    meta: newMeta,
+  };
 }
 
 export function createCC1GameDefinition(): GameDefinition<CC1Cell> {
@@ -305,6 +293,7 @@ export function createCC1GameDefinition(): GameDefinition<CC1Cell> {
 
     validateLevel: validateLevelCC1,
     getTilePalette: getCC1TilePalette,
+    updateMonsterOrder: updateMonsterOrderCC1,
   };
 
   return def;

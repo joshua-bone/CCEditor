@@ -35,3 +35,9 @@ export interface GameLevelset<TCell extends GameCellBase> {
   gameId: 'cc1' | 'cc2';
   levels: GameLevel<TCell>[];
 }
+
+export type MonsterIndex = number; // 0..1023
+
+export interface Cc1MonsterOrderMeta {
+  movement: MonsterIndex[];
+}
