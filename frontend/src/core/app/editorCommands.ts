@@ -13,6 +13,7 @@ import {
   newLayerFromSelection,
   setLayerVisibility,
   type LevelWithLayers,
+  pasteClipboard,
 } from '../model/layers';
 
 // ---------------------------------------------------------------------------
@@ -34,7 +35,8 @@ export type EditorCommandType =
   | 'NEW_LAYER_FROM_SELECTION'
   | 'SET_LAYER_VISIBILITY'
   | 'SET_ACTIVE_LAYER'
-  | 'RENAME_LAYER';
+  | 'RENAME_LAYER'
+  | 'PASTE_CLIPBOARD_AT';
 
 export interface SetActiveToolCommand {
   type: 'SET_ACTIVE_TOOL';
@@ -128,6 +130,13 @@ export interface RenameLayerCommand {
   name: string;
 }
 
+export interface PasteClipboardAtCommand {
+  type: 'PASTE_CLIPBOARD_AT';
+  levelId: LevelId;
+  layerId: LayerId;
+  anchor: Coords;
+}
+
 export type EditorCommand =
   | SetActiveToolCommand
   | SetSelectionCommand
@@ -143,7 +152,8 @@ export type EditorCommand =
   | NewLayerFromSelectionCommand
   | SetLayerVisibilityCommand
   | SetActiveLayerCommand
-  | RenameLayerCommand;
+  | RenameLayerCommand
+  | PasteClipboardAtCommand;
 
 function findLevelIndex<TCell extends GameCellBase>(
   state: EditorState<TCell>,
@@ -410,6 +420,20 @@ function applyRenameLayer<TCell extends GameCellBase>(
   });
 }
 
+function applyPasteClipboardAt<TCell extends GameCellBase>(
+  state: EditorState<TCell>,
+  cmd: PasteClipboardAtCommand,
+): EditorState<TCell> {
+  const clipboard = state.clipboard;
+  if (!clipboard) {
+    return state;
+  }
+
+  return updateLevelAt(state, cmd.levelId, (lvl) =>
+    pasteClipboard(lvl, clipboard, cmd.layerId, cmd.anchor),
+  );
+}
+
 function reduceEditorState<TCell extends GameCellBase>(
   state: EditorState<TCell>,
   command: EditorCommand,
@@ -460,6 +484,9 @@ function reduceEditorState<TCell extends GameCellBase>(
 
     case 'RENAME_LAYER':
       return applyRenameLayer(state, command);
+
+    case 'PASTE_CLIPBOARD_AT':
+      return applyPasteClipboardAt(state, command);
 
     default:
       // Unknown command type: no-op

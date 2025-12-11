@@ -95,12 +95,25 @@ export function createToolRuntimeContext<TCell extends GameCellBase>(
     },
 
     copySelectionToClipboard(): void {
-      // Will be implemented in TS21; no-op for now.
+      const { copySelectionToClipboard } = useEditorStore.getState();
+      copySelectionToClipboard();
     },
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    pasteClipboardAt(_anchor: Coords): void {
-      // Will be implemented in TS21; no-op for now.
+    pasteClipboardAt(anchor: Coords): void {
+      const state = useEditorStore.getState();
+      const { history, dispatchCommand } = state;
+      const present = history.present;
+      const level = present.levelset.levels.find((lvl) => lvl.id === present.currentLevelId);
+      if (!level) {
+        return;
+      }
+
+      dispatchCommand({
+        type: 'PASTE_CLIPBOARD_AT',
+        levelId: level.id,
+        layerId: level.activeLayerId,
+        anchor,
+      });
     },
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

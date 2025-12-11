@@ -20,6 +20,9 @@ import type { PluginRegistry } from '../core/plugin/pluginRegistry';
 import type { ToolDescriptor } from '../core/plugin/toolTypes';
 import type { CC1Cell } from '../core/game/cc1/cc1Types';
 
+import { useEffect } from 'react';
+import { createToolRuntimeContext } from '../core/app/toolRuntime';
+
 export interface EditorRootProps {
   useEditorStore: UseBoundStore<StoreApi<EditorStoreState<CC1Cell>>>;
   gameDefinitions: GameDefinitionMap;
@@ -57,6 +60,49 @@ export const EditorRoot: React.FC<EditorRootProps> = ({
   const gameDefinition: GameDefinition<GameCellBase> | undefined = gameDefinitions.get(
     present.gameId as string,
   ) as GameDefinition<GameCellBase> | undefined;
+
+  useEffect(() => {
+    function handleKeyDown(ev: KeyboardEvent): void {
+      const isMac = navigator.platform.toLowerCase().includes('mac');
+      const ctrlOrCmd = isMac ? ev.metaKey : ev.ctrlKey;
+
+      const state = useEditorStore.getState();
+      const { history } = state;
+      const present = history.present;
+
+      if (ev.key === 'Escape') {
+        ev.preventDefault();
+        state.dispatchCommand({ type: 'CLEAR_SELECTION' });
+        return;
+      }
+
+      const currentGameDef = gameDefinitions.get(present.gameId as string);
+      if (!currentGameDef) {
+        return;
+      }
+
+      const runtime = createToolRuntimeContext<CC1Cell>(
+        useEditorStore as UseBoundStore<StoreApi<EditorStoreState<CC1Cell>>>,
+        currentGameDef as GameDefinition<CC1Cell>,
+      );
+
+      if ((ev.key === 'c' || ev.key === 'C') && ctrlOrCmd) {
+        ev.preventDefault();
+        runtime.copySelectionToClipboard();
+      }
+
+      if ((ev.key === 'v' || ev.key === 'V') && ctrlOrCmd) {
+        ev.preventDefault();
+        const selection = runtime.getSelection();
+        const anchor = selection !== null ? { x: selection.x1, y: selection.y1 } : { x: 0, y: 0 };
+        runtime.pasteClipboardAt(anchor);
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [gameDefinitions, useEditorStore]);
+
   const paletteTiles = gameDefinition?.getTilePalette() ?? [];
   const leftDescriptor = paletteTiles.find((t) => t.id === paletteSelection.leftTileId);
   const rightDescriptor = paletteTiles.find((t) => t.id === paletteSelection.rightTileId);
