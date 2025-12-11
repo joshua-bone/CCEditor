@@ -16,13 +16,26 @@ import { RightSidebar } from './layout/RightSidebar';
 import { StatusBar } from './layout/StatusBar';
 import type { LayerListItem } from './layout/LayersPanel';
 
+import type { PluginRegistry } from '../core/plugin/pluginRegistry';
+import type { ToolDescriptor } from '../core/plugin/toolTypes';
+import type { CC1Cell } from '../core/game/cc1/cc1Types';
+
 export interface EditorRootProps {
-  useEditorStore: UseBoundStore<StoreApi<EditorStoreState>>;
+  useEditorStore: UseBoundStore<StoreApi<EditorStoreState<CC1Cell>>>;
   gameDefinitions: GameDefinitionMap;
+  pluginRegistry: PluginRegistry<CC1Cell>;
 }
 
-export const EditorRoot: React.FC<EditorRootProps> = ({ useEditorStore, gameDefinitions }) => {
+export const EditorRoot: React.FC<EditorRootProps> = ({
+  useEditorStore,
+  gameDefinitions,
+  pluginRegistry,
+}) => {
   const dispatchCommand = useEditorStore((s) => s.dispatchCommand);
+  const activeToolId = useEditorStore((s) => s.history.present.activeToolId);
+  const activeTool: ToolDescriptor<CC1Cell> | undefined = activeToolId
+    ? (pluginRegistry.getTool(activeToolId) as ToolDescriptor<CC1Cell> | undefined)
+    : undefined;
 
   const paletteSelection = useEditorStore((s) => s.history.present.paletteSelection);
   const setLeftPaletteTile = useEditorStore((s) => s.setLeftPaletteTile);
@@ -170,6 +183,8 @@ export const EditorRoot: React.FC<EditorRootProps> = ({ useEditorStore, gameDefi
           level={currentLevel}
           selection={present.selection as SelectionRect | null}
           gameDefinition={gameDefinition}
+          useEditorStore={useEditorStore}
+          activeTool={activeTool ?? null}
         />
 
         <RightSidebar

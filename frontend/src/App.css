@@ -200,6 +200,12 @@ body {
   background-color: #f8f8f8;
 }
 
+.LevelCanvas,
+.LevelCanvas-cell {
+  user-select: none;
+  cursor: crosshair;
+}
+
 .LevelCanvas-cell--selected {
   outline: 2px solid #007acc;
   outline-offset: -2px;

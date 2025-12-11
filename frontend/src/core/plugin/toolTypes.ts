@@ -7,27 +7,31 @@ import type { LevelWithLayers } from '../model/layers';
 import type { LayerClipboard } from '../model/clipboard';
 import type { GameDefinition } from '../game/gameDefinition';
 import type { KeyEvent, PointerEvent } from './events';
+import type { PaletteSelection } from '../app/editorState';
 
 export interface ToolRuntimeContext<TCell extends GameCellBase = GameCellBase> {
   readonly gameDefinition: GameDefinition<TCell>;
 
-  // Read-only views of state
   getCurrentLevel(): LevelWithLayers<TCell>;
   getSelection(): SelectionRect | null;
+  getPaletteSelection(): PaletteSelection;
+  getClipboard(): LayerClipboard<TCell> | null;
 
-  // High-level editing operations (to be implemented via commands/history later)
-  paintCell(coords: Coords, tileId: string, button: 'left' | 'right'): void;
-  fillRect(rect: SelectionRect, tileId: string, button: 'left' | 'right'): void;
+  /**
+   * Stroke-based painting: maps directly to the PAINT_STROKE editor command.
+   */
+  paintStroke(
+    points: Coords[],
+    tileId: string,
+    button: 'left' | 'right',
+    mode?: 'normal' | 'bury',
+  ): void;
 
+  // These can be wired to commands as we add more tools.
   setSelection(rect: SelectionRect | null): void;
-
   copySelectionToClipboard(): void;
   pasteClipboardAt(anchor: Coords): void;
-
   newLayerFromSelection(newLayerName?: string): void;
-
-  // Clipboard access if needed by tools
-  getClipboard(): LayerClipboard<TCell> | null;
 }
 
 export interface ToolBehavior<TCell extends GameCellBase = GameCellBase> {
