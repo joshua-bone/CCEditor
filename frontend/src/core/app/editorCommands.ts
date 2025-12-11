@@ -239,7 +239,9 @@ function paintStroke<TCell extends GameCellBase>(
 
   return updateLevelAt(state, command.levelId, (level) => {
     let currentLevel = level;
+
     for (const coords of command.points) {
+      // 1) Apply painting semantics (top/bottom via applyNormalPaint/applyBuryPaint)
       currentLevel = paintCell(
         currentLevel,
         command.layerId,
@@ -248,7 +250,23 @@ function paintStroke<TCell extends GameCellBase>(
         gameDefinition,
         mode,
       );
+
+      // 2) If this game definition knows how to update monster order, do it
+      if (gameDefinition.updateMonsterOrder) {
+        const layerIndex = currentLevel.layers.findIndex((l) => l.id === command.layerId);
+        if (layerIndex === -1) {
+          throw new Error(`Layer not found: ${command.layerId}`);
+        }
+
+        const layer = currentLevel.layers[layerIndex];
+        const paintedCell = layer.grid.get(coords);
+
+        if (paintedCell !== null) {
+          currentLevel = gameDefinition.updateMonsterOrder(currentLevel, coords, paintedCell);
+        }
+      }
     }
+
     return currentLevel;
   });
 }

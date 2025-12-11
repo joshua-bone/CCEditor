@@ -44,4 +44,16 @@ export interface GameDefinition<TCell extends GameCellBase> {
 
   // Palette
   getTilePalette(): TileDescriptor[];
+
+  /**
+   * Optional hook for game-specific monster-order updates.
+   * For CC1:
+   * - Called after a cell paint at coords with newCell.
+   * - Returns a new LevelWithLayers with movement list adjusted.
+   */
+  updateMonsterOrder?(
+    level: LevelWithLayers<TCell>,
+    coords: Coords,
+    newCell: TCell,
+  ): LevelWithLayers<TCell>;
 }
