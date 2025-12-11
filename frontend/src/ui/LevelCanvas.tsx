@@ -263,7 +263,7 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
     );
   });
 
-  function toKeyModifiers(ev: React.MouseEvent<HTMLDivElement>): KeyModifiers {
+  function toKeyModifiers(ev: React.MouseEvent<HTMLCanvasElement>): KeyModifiers {
     return {
       alt: ev.altKey,
       ctrl: ev.ctrlKey,
@@ -273,7 +273,7 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
   }
 
   function toPointerButton(
-    ev: React.MouseEvent<HTMLDivElement>,
+    ev: React.MouseEvent<HTMLCanvasElement>,
   ): 'left' | 'middle' | 'right' | 'aux' {
     if (ev.button === 1) return 'middle';
     if (ev.button === 2) return 'right';
@@ -282,7 +282,7 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
   }
 
   function toPointerEvent(
-    ev: React.MouseEvent<HTMLDivElement>,
+    ev: React.MouseEvent<HTMLCanvasElement>,
     kind: 'down' | 'move' | 'up',
     zoom: number,
   ): ToolPointerEvent | null {
@@ -330,20 +330,6 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
                 width: size.width * CELL_SIZE,
                 height: size.height * CELL_SIZE,
               }}
-            />
-          </div>
-
-          {/* DOM grid view (current production view) */}
-          <div className="LevelCanvas-layer">
-            <div className="LevelCanvas-layerTitle">DOM grid</div>
-            <div
-              className="LevelCanvas"
-              style={{
-                width: size.width * CELL_SIZE,
-                height: size.height * CELL_SIZE,
-                gridTemplateColumns: `repeat(${size.width}, ${CELL_SIZE}px)`,
-                gridTemplateRows: `repeat(${size.height}, ${CELL_SIZE}px)`,
-              }}
               onContextMenu={(ev) => {
                 ev.preventDefault();
               }}
@@ -365,6 +351,20 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
                 const pe = toPointerEvent(ev, 'up', zoom);
                 if (!pe) return;
                 activeTool.behavior.onPointerUp(runtimeContext, pe);
+              }}
+            />
+          </div>
+
+          {/* DOM grid view (current production view) */}
+          <div className="LevelCanvas-layer">
+            <div className="LevelCanvas-layerTitle">DOM grid</div>
+            <div
+              className="LevelCanvas"
+              style={{
+                width: size.width * CELL_SIZE,
+                height: size.height * CELL_SIZE,
+                gridTemplateColumns: `repeat(${size.width}, ${CELL_SIZE}px)`,
+                gridTemplateRows: `repeat(${size.height}, ${CELL_SIZE}px)`,
               }}
             >
               {cells}
