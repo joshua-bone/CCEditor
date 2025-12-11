@@ -1,6 +1,6 @@
 // frontend/src/ui/LevelCanvas.tsx
 
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { LevelWithLayers } from '../core/model/layers';
 import type { SelectionRect } from '../core/model/selection';
 import type { GameDefinition } from '../core/game/gameDefinition';
@@ -58,6 +58,77 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
     }
     return map;
   }, [gameDefinition]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !flattened) {
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      return;
+    }
+
+    const { width, height } = flattened.size;
+    const logicalWidth = width * CELL_SIZE;
+    const logicalHeight = height * CELL_SIZE;
+
+    const dpr = window.devicePixelRatio || 1;
+
+    // Ensure canvas backing store matches logical size * DPR.
+    if (canvas.width !== logicalWidth * dpr || canvas.height !== logicalHeight * dpr) {
+      canvas.width = logicalWidth * dpr;
+      canvas.height = logicalHeight * dpr;
+    }
+
+    // Reset transform and apply DPR scaling; zoom is handled via CSS on the wrapper.
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Clear full logical area.
+    ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+
+    // Basic styles for text drawing.
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `${CELL_SIZE * 0.6}px system-ui`;
+
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const cell = flattened.grid.get({ x, y }) as GameCellBase;
+
+        // Compute label using the same logic as for the DOM grid.
+        let label = '·';
+
+        if (gameDefinition?.gameId === 'cc1' && symbolsById) {
+          const cc1Cell = cell as CC1Cell;
+          const topCode = cc1Cell.top ?? CC1TileId.FLOOR;
+          const tileName = cc1TileIdToName(topCode);
+          const symbol = symbolsById.get(tileName) ?? '■';
+          label = symbol;
+        } else {
+          const hasTop = (cell as { top?: unknown }).top !== undefined;
+          label = hasTop ? '■' : '·';
+        }
+
+        const px = x * CELL_SIZE;
+        const py = y * CELL_SIZE;
+
+        // Background
+        ctx.fillStyle = '#f8f8f8';
+        ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
+
+        // Grid lines (optional; comment out if too noisy)
+        ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(px, py, CELL_SIZE, CELL_SIZE);
+
+        // Glyph
+        ctx.fillStyle = '#000000';
+        ctx.fillText(label, px + CELL_SIZE / 2, py + CELL_SIZE / 2);
+      }
+    }
+  }, [canvasRef, flattened, gameDefinition, symbolsById]);
 
   if (!level || !flattened) {
     return <div className="LevelCanvas-empty">No level or game definition available.</div>;
@@ -184,81 +255,91 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
         </button>
         <span className="CanvasToolbar-zoomValue">{Math.round(zoom * 100)}%</span>
       </div>
+
       <div className="LevelCanvas-scroll">
         <div className="LevelCanvas-inner" style={{ transform: `scale(${zoom})` }}>
-          <canvas
-            ref={canvasRef}
-            className="LevelCanvas-canvas"
-            width={size.width * CELL_SIZE}
-            height={size.height * CELL_SIZE}
-            style={{
-              width: size.width * CELL_SIZE,
-              height: size.height * CELL_SIZE,
-            }}
-          />
-          <div
-            className="LevelCanvas"
-            style={{
-              width: size.width * CELL_SIZE,
-              height: size.height * CELL_SIZE,
-              gridTemplateColumns: `repeat(${size.width}, ${CELL_SIZE}px)`,
-              gridTemplateRows: `repeat(${size.height}, ${CELL_SIZE}px)`,
-            }}
-            onContextMenu={(ev) => {
-              ev.preventDefault();
-            }}
-            onMouseDown={(ev) => {
-              ev.preventDefault();
-              if (!runtimeContext || !activeTool?.behavior.onPointerDown) return;
-              const pe = toPointerEvent(ev, 'down', zoom);
-              if (!pe) return;
-              activeTool.behavior.onPointerDown(runtimeContext, pe);
-            }}
-            onMouseMove={(ev) => {
-              if (!runtimeContext || !activeTool?.behavior.onPointerMove) return;
-              const pe = toPointerEvent(ev, 'move', zoom);
-              if (!pe) return;
-              activeTool.behavior.onPointerMove(runtimeContext, pe);
-            }}
-            onMouseUp={(ev) => {
-              if (!runtimeContext || !activeTool?.behavior.onPointerUp) return;
-              const pe = toPointerEvent(ev, 'up', zoom);
-              if (!pe) return;
-              activeTool.behavior.onPointerUp(runtimeContext, pe);
-            }}
-          >
-            {cells}
+          {/* Canvas view (for C2D debugging) */}
+          <div className="LevelCanvas-layer">
+            <div className="LevelCanvas-layerTitle">Canvas2D</div>
+            <canvas
+              ref={canvasRef}
+              className="LevelCanvas-canvas"
+              width={size.width * CELL_SIZE}
+              height={size.height * CELL_SIZE}
+              style={{
+                width: size.width * CELL_SIZE,
+                height: size.height * CELL_SIZE,
+              }}
+            />
           </div>
 
-          <div
-            className="LevelCanvas-overlays"
-            style={{
-              width: size.width * CELL_SIZE,
-              height: size.height * CELL_SIZE,
-            }}
-          >
-            {overlays.map((shape) => {
-              if (shape.kind === 'label') {
-                const left = shape.coords.x * CELL_SIZE;
-                const top = shape.coords.y * CELL_SIZE;
-                return (
-                  <div
-                    key={shape.id ?? `overlay-${shape.coords.x}-${shape.coords.y}-${shape.text}`}
-                    className="Overlay-label"
-                    style={{
-                      left,
-                      top,
-                      width: CELL_SIZE,
-                      height: CELL_SIZE,
-                    }}
-                  >
-                    {shape.text}
-                  </div>
-                );
-              }
-              // Lines/rects can be added later (TS24).
-              return null;
-            })}
+          {/* DOM grid view (current production view) */}
+          <div className="LevelCanvas-layer">
+            <div className="LevelCanvas-layerTitle">DOM grid</div>
+            <div
+              className="LevelCanvas"
+              style={{
+                width: size.width * CELL_SIZE,
+                height: size.height * CELL_SIZE,
+                gridTemplateColumns: `repeat(${size.width}, ${CELL_SIZE}px)`,
+                gridTemplateRows: `repeat(${size.height}, ${CELL_SIZE}px)`,
+              }}
+              onContextMenu={(ev) => {
+                ev.preventDefault();
+              }}
+              onMouseDown={(ev) => {
+                ev.preventDefault();
+                if (!runtimeContext || !activeTool?.behavior.onPointerDown) return;
+                const pe = toPointerEvent(ev, 'down', zoom);
+                if (!pe) return;
+                activeTool.behavior.onPointerDown(runtimeContext, pe);
+              }}
+              onMouseMove={(ev) => {
+                if (!runtimeContext || !activeTool?.behavior.onPointerMove) return;
+                const pe = toPointerEvent(ev, 'move', zoom);
+                if (!pe) return;
+                activeTool.behavior.onPointerMove(runtimeContext, pe);
+              }}
+              onMouseUp={(ev) => {
+                if (!runtimeContext || !activeTool?.behavior.onPointerUp) return;
+                const pe = toPointerEvent(ev, 'up', zoom);
+                if (!pe) return;
+                activeTool.behavior.onPointerUp(runtimeContext, pe);
+              }}
+            >
+              {cells}
+            </div>
+
+            <div
+              className="LevelCanvas-overlays"
+              style={{
+                width: size.width * CELL_SIZE,
+                height: size.height * CELL_SIZE,
+              }}
+            >
+              {overlays.map((shape) => {
+                if (shape.kind === 'label') {
+                  const left = shape.coords.x * CELL_SIZE;
+                  const top = shape.coords.y * CELL_SIZE;
+                  return (
+                    <div
+                      key={shape.id ?? `overlay-${shape.coords.x}-${shape.coords.y}-${shape.text}`}
+                      className="Overlay-label"
+                      style={{
+                        left,
+                        top,
+                        width: CELL_SIZE,
+                        height: CELL_SIZE,
+                      }}
+                    >
+                      {shape.text}
+                    </div>
+                  );
+                }
+                // Lines/rects can be added later.
+                return null;
+              })}
+            </div>
           </div>
         </div>
       </div>
