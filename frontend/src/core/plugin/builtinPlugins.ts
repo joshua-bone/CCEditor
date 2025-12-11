@@ -9,6 +9,7 @@ import { brushToolDescriptor } from './cc1/brushToolPlugin';
 import { lineToolDescriptor } from './cc1/lineToolPlugin';
 import { rectToolDescriptor, ovalToolDescriptor } from './cc1/rectOvalToolPlugin';
 import { selectionToolDescriptor } from './cc1/selectionToolPlugin';
+import { randomNoiseGenerator } from './cc1/randomNoiseGenerator';
 
 const cc1Def = createCC1GameDefinition();
 
@@ -60,6 +61,14 @@ export const builtinPlugins: Plugin<CC1Cell>[] = [
     displayName: 'Selection Tool',
     activate(ctx) {
       ctx.registerTool(selectionToolDescriptor);
+    },
+  },
+  {
+    id: 'plugin.generators.randomNoise',
+    type: 'bundle',
+    displayName: 'Random Noise Generator',
+    activate(ctx) {
+      ctx.registerGenerator(randomNoiseGenerator);
     },
   },
 ];

@@ -19,7 +19,7 @@ export type GameDefinitionMap<TCell extends GameCellBase = GameCellBase> = Map<
 export interface EditorStoreState<TCell extends GameCellBase = GameCellBase> {
   history: EditorHistory<TCell>;
 
-  dispatchCommand(command: EditorCommand): void;
+  dispatchCommand(command: EditorCommand<TCell>): void;
   undo(): void;
   redo(): void;
 

@@ -14,7 +14,9 @@ import {
   setLayerVisibility,
   type LevelWithLayers,
   pasteClipboard,
+  type Transparent,
 } from '../model/layers';
+import type { Grid } from '../model/grid';
 
 // ---------------------------------------------------------------------------
 // Command definitions
@@ -36,7 +38,8 @@ export type EditorCommandType =
   | 'SET_LAYER_VISIBILITY'
   | 'SET_ACTIVE_LAYER'
   | 'RENAME_LAYER'
-  | 'PASTE_CLIPBOARD_AT';
+  | 'PASTE_CLIPBOARD_AT'
+  | 'APPLY_LAYER_UPDATE';
 
 export interface SetActiveToolCommand {
   type: 'SET_ACTIVE_TOOL';
@@ -137,7 +140,14 @@ export interface PasteClipboardAtCommand {
   anchor: Coords;
 }
 
-export type EditorCommand =
+export interface ApplyLayerUpdateCommand<TCell extends GameCellBase> {
+  type: 'APPLY_LAYER_UPDATE';
+  levelId: LevelId;
+  layerId: LayerId;
+  update: (grid: Grid<TCell | Transparent>) => Grid<TCell | Transparent>;
+}
+
+export type EditorCommand<TCell extends GameCellBase = GameCellBase> =
   | SetActiveToolCommand
   | SetSelectionCommand
   | ClearSelectionCommand
@@ -153,7 +163,8 @@ export type EditorCommand =
   | SetLayerVisibilityCommand
   | SetActiveLayerCommand
   | RenameLayerCommand
-  | PasteClipboardAtCommand;
+  | PasteClipboardAtCommand
+  | ApplyLayerUpdateCommand<TCell>;
 
 function findLevelIndex<TCell extends GameCellBase>(
   state: EditorState<TCell>,
@@ -434,9 +445,80 @@ function applyPasteClipboardAt<TCell extends GameCellBase>(
   );
 }
 
+function applyLayerUpdate<TCell extends GameCellBase>(
+  state: EditorState<TCell>,
+  cmd: ApplyLayerUpdateCommand<TCell>,
+): EditorState<TCell> {
+  return updateLevelAt(state, cmd.levelId, (level) => {
+    const idx = level.layers.findIndex((layer) => layer.id === cmd.layerId);
+    if (idx === -1) {
+      return level;
+    }
+    const layers = level.layers.slice();
+    const target = layers[idx];
+    const nextGrid = cmd.update(target.grid);
+    layers[idx] = { ...target, grid: nextGrid };
+    return { ...level, layers };
+  });
+}
+
+export function applyEditorCommand<TCell extends GameCellBase>(
+  history: EditorHistory<TCell>,
+  command: EditorCommand<TCell>,
+  gameDefinition: GameDefinition<TCell>,
+): EditorHistory<TCell> {
+  const current = history.present;
+  const next = reduceEditorState(current, command, gameDefinition);
+
+  // If nothing changed, we can skip pushing history
+  if (next === current) {
+    return history;
+  }
+
+  return {
+    past: [...history.past, current],
+    present: next,
+    future: [],
+  };
+}
+
+export function undo<TCell extends GameCellBase>(
+  history: EditorHistory<TCell>,
+): EditorHistory<TCell> {
+  if (history.past.length === 0) {
+    return history;
+  }
+
+  const past = history.past.slice();
+  const previous = past.pop()!;
+  const future = [history.present, ...history.future];
+
+  return {
+    past,
+    present: previous,
+    future,
+  };
+}
+
+export function redo<TCell extends GameCellBase>(
+  history: EditorHistory<TCell>,
+): EditorHistory<TCell> {
+  if (history.future.length === 0) {
+    return history;
+  }
+
+  const [next, ...restFuture] = history.future;
+
+  return {
+    past: [...history.past, history.present],
+    present: next,
+    future: restFuture,
+  };
+}
+
 function reduceEditorState<TCell extends GameCellBase>(
   state: EditorState<TCell>,
-  command: EditorCommand,
+  command: EditorCommand<TCell>,
   gameDefinition: GameDefinition<TCell>,
 ): EditorState<TCell> {
   switch (command.type) {
@@ -488,62 +570,11 @@ function reduceEditorState<TCell extends GameCellBase>(
     case 'PASTE_CLIPBOARD_AT':
       return applyPasteClipboardAt(state, command);
 
+    case 'APPLY_LAYER_UPDATE':
+      return applyLayerUpdate(state, command);
+
     default:
       // Unknown command type: no-op
       return state;
   }
-}
-
-export function applyEditorCommand<TCell extends GameCellBase>(
-  history: EditorHistory<TCell>,
-  command: EditorCommand,
-  gameDefinition: GameDefinition<TCell>,
-): EditorHistory<TCell> {
-  const current = history.present;
-  const next = reduceEditorState(current, command, gameDefinition);
-
-  // If nothing changed, we can skip pushing history
-  if (next === current) {
-    return history;
-  }
-
-  return {
-    past: [...history.past, current],
-    present: next,
-    future: [],
-  };
-}
-
-export function undo<TCell extends GameCellBase>(
-  history: EditorHistory<TCell>,
-): EditorHistory<TCell> {
-  if (history.past.length === 0) {
-    return history;
-  }
-
-  const past = history.past.slice();
-  const previous = past.pop()!;
-  const future = [history.present, ...history.future];
-
-  return {
-    past,
-    present: previous,
-    future,
-  };
-}
-
-export function redo<TCell extends GameCellBase>(
-  history: EditorHistory<TCell>,
-): EditorHistory<TCell> {
-  if (history.future.length === 0) {
-    return history;
-  }
-
-  const [next, ...restFuture] = history.future;
-
-  return {
-    past: [...history.past, history.present],
-    present: next,
-    future: restFuture,
-  };
 }

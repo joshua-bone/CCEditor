@@ -1,8 +1,14 @@
 import React from 'react';
-import type { TileDescriptor } from '../../core/game/gameDefinition';
+import type { GameDefinition, TileDescriptor } from '../../core/game/gameDefinition';
 import { TilePalette } from '../TilePalette';
 import type { LayerListItem } from './LayersPanel';
 import { LayersPanel } from './LayersPanel';
+import type { GeneratorDescriptor } from '../../core/plugin/generatorTypes';
+import type { StoreApi, UseBoundStore } from 'zustand';
+import type { GameCellBase } from '../../core/model/gameTypes';
+import type { EditorStoreState } from '../../core/app/editorStore';
+import type { CC1Cell } from '../../core/game/cc1/cc1Types';
+import { GeneratorsPanel } from './GeneratorsPanel';
 
 interface RightSidebarProps {
   tiles: TileDescriptor[];
@@ -20,6 +26,10 @@ interface RightSidebarProps {
   onMoveLayer(layerId: string, direction: 'up' | 'down'): void;
   onNewLayerFromSelection(): void;
   onRenameLayer(layerId: string, name: string): void;
+
+  generators: GeneratorDescriptor<CC1Cell>[];
+  useEditorStore: UseBoundStore<StoreApi<EditorStoreState<CC1Cell>>>;
+  gameDefinition: GameDefinition<GameCellBase> | undefined;
 }
 
 export const RightSidebar: React.FC<RightSidebarProps> = (props) => {
@@ -38,6 +48,9 @@ export const RightSidebar: React.FC<RightSidebarProps> = (props) => {
     onMoveLayer,
     onNewLayerFromSelection,
     onRenameLayer,
+    generators,
+    useEditorStore,
+    gameDefinition,
   } = props;
 
   return (
@@ -63,6 +76,14 @@ export const RightSidebar: React.FC<RightSidebarProps> = (props) => {
         onMoveLayer={onMoveLayer}
         onNewLayerFromSelection={onNewLayerFromSelection}
         onRenameLayer={onRenameLayer}
+      />
+
+      <hr className="Sidebar-separator" />
+
+      <GeneratorsPanel
+        generators={generators}
+        useEditorStore={useEditorStore}
+        gameDefinition={gameDefinition as GameDefinition<CC1Cell> | undefined}
       />
     </aside>
   );
