@@ -8,6 +8,7 @@ import { createCC1GameDefinition } from '../game/cc1/cc1GameDefinition';
 import { brushToolDescriptor } from './cc1/brushToolPlugin';
 import { lineToolDescriptor } from './cc1/lineToolPlugin';
 import { rectToolDescriptor, ovalToolDescriptor } from './cc1/rectOvalToolPlugin';
+import { selectionToolDescriptor } from './cc1/selectionToolPlugin';
 
 const cc1Def = createCC1GameDefinition();
 
@@ -51,6 +52,14 @@ export const builtinPlugins: Plugin<CC1Cell>[] = [
     activate(ctx) {
       ctx.registerTool(rectToolDescriptor);
       ctx.registerTool(ovalToolDescriptor);
+    },
+  },
+  {
+    id: 'plugin.tools.selection',
+    type: 'bundle',
+    displayName: 'Selection Tool',
+    activate(ctx) {
+      ctx.registerTool(selectionToolDescriptor);
     },
   },
 ];

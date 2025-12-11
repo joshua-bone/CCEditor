@@ -8,6 +8,8 @@ import type { EditorHistory } from './editorHistory';
 import { applyEditorCommand, undo, redo, type EditorCommand } from './editorCommands';
 import type { GameDefinition } from '../game/gameDefinition';
 import type { EditorState } from './editorState';
+import { copySelection } from '../model/layers';
+import type { LayerClipboard } from '../model/clipboard';
 
 export type GameDefinitionMap<TCell extends GameCellBase = GameCellBase> = Map<
   string,
@@ -23,16 +25,18 @@ export interface EditorStoreState<TCell extends GameCellBase = GameCellBase> {
 
   loadStateFromProject(state: EditorState<TCell>): void;
 
-  setLeftPaletteTile(tileId: string | null): void; // NEW
-  setRightPaletteTile(tileId: string | null): void; // NEW
+  setLeftPaletteTile(tileId: string | null): void;
+  setRightPaletteTile(tileId: string | null): void;
+
+  setClipboard(clipboard: LayerClipboard<TCell> | null): void;
+  copySelectionToClipboard(): void;
 }
 
 export function createEditorStore<TCell extends GameCellBase>(
   initialHistory: EditorHistory<TCell>,
   gameDefinitions: GameDefinitionMap<TCell>,
 ): UseBoundStore<StoreApi<EditorStoreState<TCell>>> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return create<EditorStoreState<TCell>>((set, _get) => ({
+  return create<EditorStoreState<TCell>>((set, get) => ({
     history: initialHistory,
 
     dispatchCommand(command) {
@@ -112,6 +116,37 @@ export function createEditorStore<TCell extends GameCellBase>(
           },
         };
       });
+    },
+    setClipboard(clipboard) {
+      set((state) => {
+        const present = state.history.present;
+        const nextPresent: EditorState<TCell> = {
+          ...present,
+          clipboard,
+        };
+        return {
+          ...state,
+          history: {
+            ...state.history,
+            present: nextPresent,
+          },
+        };
+      });
+    },
+
+    copySelectionToClipboard() {
+      const state = get();
+      const { history } = state;
+      const present = history.present;
+
+      const level = present.levelset.levels.find((lvl) => lvl.id === present.currentLevelId);
+      const selection = present.selection;
+      if (!level || !selection) {
+        return;
+      }
+
+      const clipboard = copySelection(level, selection, level.activeLayerId);
+      state.setClipboard(clipboard);
     },
   }));
 }
