@@ -9,11 +9,15 @@ import { EditorRoot } from './ui/EditorRoot';
 const editorRuntime = createEditor(builtinPlugins); // { useEditorStore, gameDefinitions, ... }
 
 function App() {
-  const { useEditorStore, gameDefinitions } = editorRuntime;
+  const { useEditorStore, gameDefinitions, pluginRegistry } = editorRuntime;
 
   return (
     <div className="AppRoot">
-      <EditorRoot useEditorStore={useEditorStore} gameDefinitions={gameDefinitions} />
+      <EditorRoot
+        useEditorStore={useEditorStore}
+        gameDefinitions={gameDefinitions}
+        pluginRegistry={pluginRegistry}
+      />
     </div>
   );
 }
