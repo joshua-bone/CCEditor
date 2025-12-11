@@ -17,9 +17,6 @@ export interface ToolRuntimeContext<TCell extends GameCellBase = GameCellBase> {
   getPaletteSelection(): PaletteSelection;
   getClipboard(): LayerClipboard<TCell> | null;
 
-  /**
-   * Stroke-based painting: maps directly to the PAINT_STROKE editor command.
-   */
   paintStroke(
     points: Coords[],
     tileId: string,
@@ -27,7 +24,24 @@ export interface ToolRuntimeContext<TCell extends GameCellBase = GameCellBase> {
     mode?: 'normal' | 'bury',
   ): void;
 
-  // These can be wired to commands as we add more tools.
+  /**
+   * Convenience helpers built on top of paintStroke.
+   */
+  paintLine(
+    from: Coords,
+    to: Coords,
+    tileId: string,
+    button: 'left' | 'right',
+    mode?: 'normal' | 'bury',
+  ): void;
+
+  fillRect(
+    rect: SelectionRect,
+    tileId: string,
+    button: 'left' | 'right',
+    mode?: 'normal' | 'bury',
+  ): void;
+
   setSelection(rect: SelectionRect | null): void;
   copySelectionToClipboard(): void;
   pasteClipboardAt(anchor: Coords): void;

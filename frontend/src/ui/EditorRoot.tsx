@@ -36,6 +36,7 @@ export const EditorRoot: React.FC<EditorRootProps> = ({
   const activeTool: ToolDescriptor<CC1Cell> | undefined = activeToolId
     ? (pluginRegistry.getTool(activeToolId) as ToolDescriptor<CC1Cell> | undefined)
     : undefined;
+  const allTools = pluginRegistry.getTools(); // Map -> array
 
   const paletteSelection = useEditorStore((s) => s.history.present.paletteSelection);
   const setLeftPaletteTile = useEditorStore((s) => s.setLeftPaletteTile);
@@ -165,9 +166,22 @@ export const EditorRoot: React.FC<EditorRootProps> = ({
     });
   };
 
+  const handleSelectTool = (toolId: string) => {
+    dispatchCommand({
+      type: 'SET_ACTIVE_TOOL',
+      toolId,
+    });
+  };
+
   return (
     <>
-      <TopToolbar projectId={present.projectId} gameId={present.gameId} />
+      <TopToolbar
+        projectId={present.projectId}
+        gameId={present.gameId}
+        tools={allTools}
+        activeToolId={present.activeToolId}
+        onSelectTool={handleSelectTool}
+      />
 
       <div className="MainLayout">
         <LeftSidebar
