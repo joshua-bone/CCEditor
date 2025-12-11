@@ -59,6 +59,27 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
     return map;
   }, [gameDefinition]);
 
+  const overlays: OverlayShape[] = (() => {
+    if (!flattened || !gameDefinition || gameDefinition.gameId !== 'cc1') {
+      return [];
+    }
+    const asCc1Level = flattened as unknown as GameLevel<CC1Cell>;
+    const shapes: OverlayShape[] = [];
+
+    for (const provider of overlayProviders) {
+      const enabled = overlaysEnabled[provider.id] ?? false;
+      if (!enabled) {
+        continue;
+      }
+      const providerShapes = provider.getOverlays(asCc1Level);
+      for (const shape of providerShapes) {
+        shapes.push(shape);
+      }
+    }
+
+    return shapes;
+  })();
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !flattened) {
@@ -128,7 +149,67 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
         ctx.fillText(label, px + CELL_SIZE / 2, py + CELL_SIZE / 2);
       }
     }
-  }, [canvasRef, flattened, gameDefinition, symbolsById]);
+    if (selection) {
+      const selX = selection.x1 * CELL_SIZE;
+      const selY = selection.y1 * CELL_SIZE;
+      const selWidth = (selection.x2 - selection.x1 + 1) * CELL_SIZE;
+      const selHeight = (selection.y2 - selection.y1 + 1) * CELL_SIZE;
+
+      ctx.save();
+      ctx.strokeStyle = '#007acc';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]); // dashed; remove for solid
+      ctx.strokeRect(selX, selY, selWidth, selHeight);
+      ctx.restore();
+    }
+    for (const shape of overlays) {
+      if (shape.kind === 'label') {
+        ctx.save();
+        ctx.fillStyle = '#d32f2f';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = `${CELL_SIZE * 0.6}px system-ui`;
+
+        const cx = shape.coords.x * CELL_SIZE + CELL_SIZE / 2;
+        const cy = shape.coords.y * CELL_SIZE + CELL_SIZE / 2;
+        ctx.fillText(shape.text, cx, cy);
+        ctx.restore();
+        continue;
+      }
+
+      if (shape.kind === 'rect') {
+        const left = shape.x * CELL_SIZE;
+        const top = shape.y * CELL_SIZE;
+        const widthPx = shape.width * CELL_SIZE;
+        const heightPx = shape.height * CELL_SIZE;
+
+        ctx.save();
+        ctx.strokeStyle = shape.stroke ?? '#ff9800';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeRect(left, top, widthPx, heightPx);
+        ctx.restore();
+        continue;
+      }
+
+      if (shape.kind === 'line') {
+        const x1 = shape.from.x * CELL_SIZE + CELL_SIZE / 2;
+        const y1 = shape.from.y * CELL_SIZE + CELL_SIZE / 2;
+        const x2 = shape.to.x * CELL_SIZE + CELL_SIZE / 2;
+        const y2 = shape.to.y * CELL_SIZE + CELL_SIZE / 2;
+
+        ctx.save();
+        ctx.strokeStyle = shape.stroke ?? '#4caf50';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.restore();
+        continue;
+      }
+    }
+  }, [canvasRef, flattened, gameDefinition, symbolsById, selection, overlays]);
 
   if (!level || !flattened) {
     return <div className="LevelCanvas-empty">No level or game definition available.</div>;
@@ -138,27 +219,6 @@ export const LevelCanvas: React.FC<LevelCanvasProps> = ({
     activeTool && gameDefinition && gameDefinition.gameId === 'cc1'
       ? createToolRuntimeContext(useEditorStore, gameDefinition as GameDefinition<CC1Cell>)
       : null;
-
-  const overlays: OverlayShape[] = (() => {
-    if (!gameDefinition || gameDefinition.gameId !== 'cc1') {
-      return [];
-    }
-    const asCc1Level = flattened as unknown as GameLevel<CC1Cell>;
-    const shapes: OverlayShape[] = [];
-
-    for (const provider of overlayProviders) {
-      const enabled = overlaysEnabled[provider.id] ?? false;
-      if (!enabled) {
-        continue;
-      }
-      const providerShapes = provider.getOverlays(asCc1Level);
-      for (const shape of providerShapes) {
-        shapes.push(shape);
-      }
-    }
-
-    return shapes;
-  })();
 
   const { size, grid } = flattened;
 
